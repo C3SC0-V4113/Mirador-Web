@@ -1,3 +1,4 @@
+import { Cat } from 'lucide-react';
 import Image from 'next/image';
 
 import type { Metadata } from 'next';
@@ -20,6 +21,7 @@ export default function Home() {
           priority
         />
         <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+          <Cat className="size-8 text-zinc-700 dark:text-zinc-300" aria-hidden />
           <h1 className="max-w-xs text-3xl leading-10 font-semibold tracking-tight text-black dark:text-zinc-50">
             To get started, edit the page.tsx file.
           </h1>
