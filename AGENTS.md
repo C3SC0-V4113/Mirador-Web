@@ -1,5 +1,36 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This project uses Next.js 16 or newer. APIs and conventions may differ from model memory. Read relevant guides in `node_modules/next/dist/docs/` before changing Next.js code.
+
 <!-- END:nextjs-agent-rules -->
+
+## Quality Gates
+
+Run these before claiming implementation complete:
+
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm run format:check`
+4. `npm run test`
+
+- Run `npm run test:e2e` when E2E behavior changed.
+- `npm run doctor`
+- `npm run check`
+
+Do not use `next lint`; use the ESLint CLI.
+
+## References
+
+- Architecture and scripts: `README.md`
+- Design rules: `DESIGN.md`
+- Next.js guidance: `.agents/skills/next-best-practices/SKILL.md`
+- Minimum evaluation: `.agents/skills/project-min-evaluation/SKILL.md`
+- Vitest guidance: `.agents/skills/vitest/SKILL.md`
+- Playwright guidance: `.agents/skills/playwright-best-practices/SKILL.md`
+- Commit messages are checked with commitlint.
+
+## Claude Code
+
+`CLAUDE.md` points to this file. `.claude/skills` should link to `.agents/skills`.
