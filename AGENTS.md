@@ -24,6 +24,10 @@ Do not use `next lint`; use the ESLint CLI.
 ## References
 
 - Architecture and scripts: `README.md`
+- System context, frontend boundaries, and flows: `docs/architecture/overview.md`
+- Backend endpoints the frontend consumes: `docs/architecture/api-contracts.md`
+- Ubiquitous language: `docs/glossary/README.md`
+- Architecture decision records: `docs/adr/`
 - Design rules: `DESIGN.md`
 - Next.js guidance: `.agents/skills/next-best-practices/SKILL.md`
 - Minimum evaluation: `.agents/skills/project-min-evaluation/SKILL.md`
