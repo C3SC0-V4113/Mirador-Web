@@ -13,6 +13,24 @@ Built as a Next.js app with strict quality tooling, shadcn, React Doctor, React 
 npm run dev
 ```
 
+Then open `/login`. The app has two surfaces: `/login` and `/chat` (see
+[docs/architecture/overview.md](docs/architecture/overview.md)). `/` redirects based on session.
+
+## Environment
+
+Copy `.env.example` to `.env.local` and fill it in. Auth uses Auth.js (NextAuth v5) with a JWT
+session (no database), kept OpenNext/Cloudflare-compatible.
+
+| Variable           | Purpose                                                                                |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| `AUTH_SECRET`      | Signs the session cookie. Generate with `openssl rand -base64 32`.                     |
+| `AUTH_TRUST_HOST`  | Set `true` behind a proxy / on Cloudflare Workers.                                     |
+| `MIRADOR_API_URL`  | `mirador-core` base URL. When set, login POSTs to `${MIRADOR_API_URL}/api/auth/login`. |
+| `DEV_CEO_EMAIL`    | Dev-only single CEO email, used when `MIRADOR_API_URL` is empty.                       |
+| `DEV_CEO_PASSWORD` | Dev-only single CEO password, used when `MIRADOR_API_URL` is empty.                    |
+
+Until `mirador-core` exists, leave `MIRADOR_API_URL` empty and log in with the dev CEO credentials.
+
 ## Quality
 
 ```bash

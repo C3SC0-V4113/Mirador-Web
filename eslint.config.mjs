@@ -109,12 +109,22 @@ const eslintConfig = defineConfig([
     ...playwrightPlugin.configs['flat/recommended'],
   },
   {
-    // Generated shadcn/ui primitives intentionally co-export variant helpers
-    // (e.g. `buttonVariants`) alongside their component. Mirrors the
-    // `components/ui/**` exemption in react-doctor.config.json.
+    // Generated shadcn/ui primitives are vendored source. They intentionally
+    // co-export variant helpers (e.g. `buttonVariants`) and follow upstream
+    // composition/a11y patterns that trip some strict rules. Exempt those rules
+    // here only; app code keeps full strictness. Mirrors the `components/ui/**`
+    // exemption in react-doctor.config.json.
     files: ['components/ui/**/*.{jsx,tsx}'],
     rules: {
       'react-doctor/only-export-components': 'off',
+      'react-doctor/no-multi-comp': 'off',
+      'react-doctor/prefer-tag-over-role': 'off',
+      'react-doctor/click-events-have-key-events': 'off',
+      'react-doctor/label-has-associated-control': 'off',
+      'react-doctor/rerender-memo-before-early-return': 'off',
+      'react-doctor/react-compiler-no-manual-memoization': 'off',
+      'react-doctor/no-array-index-as-key': 'off',
+      'react/boolean-prop-naming': 'off',
     },
   },
   eslintConfigPrettier,

@@ -9,9 +9,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  // The dev server compiles routes on first request (Turbopack), so the first
+  // navigation in a cold run can be slow. Give navigations/actions generous
+  // budgets to avoid false negatives.
+  timeout: 120_000,
+  expect: { timeout: 15_000 },
   use: {
     baseURL: baseUrl,
     trace: 'on-first-retry',
+    navigationTimeout: 90_000,
+    actionTimeout: 20_000,
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
@@ -22,6 +29,6 @@ export default defineConfig({
     command: 'npm run dev -- --hostname 127.0.0.1 --port 3000',
     url: baseUrl,
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });
