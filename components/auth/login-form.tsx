@@ -59,8 +59,11 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-sm">
-      <CardHeader className="items-center text-center">
-        <Brand iconClassName="size-6" wordmarkClassName="text-lg" />
+      <CardHeader className="justify-items-center gap-4 text-center">
+        <Brand.Root className="gap-3">
+          <Brand.Icon className="size-6" />
+          <Brand.Wordmark className="text-lg" />
+        </Brand.Root>
         <CardTitle>Inicia sesión</CardTitle>
         <CardDescription>Accede a tu asistente ejecutivo Mirador.</CardDescription>
       </CardHeader>
