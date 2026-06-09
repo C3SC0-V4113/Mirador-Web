@@ -43,6 +43,38 @@ export const chatStrings = {
     you: 'Tú',
     assistant: 'Mirador',
   },
+  emptyState: {
+    title: 'Empieza una conversación',
+    description:
+      'Pregunta por tus métricas o por información de la empresa y Mirador te responderá aquí.',
+    suggestionsTitle: 'Prueba con una de estas',
+    suggestions: [
+      '¿Cómo evolucionó el MRR en los últimos 6 meses?',
+      '¿Cuáles son nuestros mayores riesgos operativos ahora?',
+      'Resume el desempeño del último trimestre.',
+      '¿Qué dice el manifiesto sobre nuestra misión?',
+    ],
+  },
+  quickActions: {
+    title: 'Acciones rápidas',
+    actions: [
+      {
+        id: 'compare',
+        label: 'Comparar',
+        prompt: 'Compara estos resultados con el periodo anterior.',
+      },
+      {
+        id: 'explain',
+        label: 'Explicar',
+        prompt: 'Explica las causas detrás de estos resultados.',
+      },
+      {
+        id: 'forecast',
+        label: 'Pronosticar',
+        prompt: 'Proyecta la tendencia para los próximos 3 meses.',
+      },
+    ],
+  },
   errors: {
     requestFailed: 'No se pudo completar la solicitud. Inténtalo de nuevo.',
     noResponse: 'El servidor no devolvió una respuesta.',

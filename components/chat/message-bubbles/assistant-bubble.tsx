@@ -6,6 +6,8 @@ import { useState } from 'react';
 import * as ChatBubble from '@/components/chat/chat-bubble';
 import { ChatMarkdown } from '@/components/chat/chat-markdown';
 import { useChatRuntime } from '@/components/chat/chat-runtime-provider';
+import { QuickActions } from '@/components/chat/quick-actions';
+import { SuggestionPills } from '@/components/chat/suggestion-pills';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -23,6 +25,7 @@ interface AssistantBubbleProps {
   warnings?: string[];
   traceId?: string | null;
   retryPrompt?: string;
+  isLastAssistant?: boolean;
 }
 
 const strings = chatStrings.message;
@@ -37,15 +40,11 @@ export function AssistantBubble({
   warnings,
   traceId,
   retryPrompt,
+  isLastAssistant,
 }: AssistantBubbleProps) {
   const isCopied = useChatStore((state) => state.copiedMessageId === messageId);
-  const { copyMessageText, retryLastFailedPrompt, sendMessage } = useChatRuntime();
+  const { copyMessageText, retryLastFailedPrompt } = useChatRuntime();
   const [isTraceCopied, setIsTraceCopied] = useState(false);
-
-  const handleSuggestedQuestion = (question: string) => {
-    useChatStore.getState().setInput(question);
-    void sendMessage();
-  };
 
   const handleCopyTrace = async (value: string) => {
     try {
@@ -115,24 +114,16 @@ export function AssistantBubble({
           <p className="mb-1.5 text-xs font-medium text-muted-foreground">
             {strings.suggestedTitle}
           </p>
-          <div className="flex flex-wrap gap-1.5">
-            {suggestedQuestions.map((question) => (
-              <Badge
-                key={question}
-                variant="secondary"
-                className="h-auto cursor-pointer px-2 py-1 whitespace-normal hover:bg-secondary/70"
-                render={
-                  <button
-                    type="button"
-                    aria-label={question}
-                    onClick={() => handleSuggestedQuestion(question)}
-                  />
-                }
-              >
-                {question}
-              </Badge>
-            ))}
-          </div>
+          <SuggestionPills questions={suggestedQuestions} aria-label={strings.suggestedTitle} />
+        </section>
+      ) : null}
+
+      {isLastAssistant && status === 'complete' && text.trim() ? (
+        <section className="mt-3" aria-label={chatStrings.quickActions.title}>
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+            {chatStrings.quickActions.title}
+          </p>
+          <QuickActions />
         </section>
       ) : null}
 
