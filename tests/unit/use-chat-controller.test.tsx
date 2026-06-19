@@ -35,6 +35,7 @@ describe('useChatController', () => {
       answer: 'Respuesta del backend',
       citations: [],
       suggestedQuestions: ['¿Siguiente pregunta?'],
+      artifacts: [],
       warnings: [],
       traceId: 'trace-1',
     });

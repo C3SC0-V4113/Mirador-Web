@@ -2,8 +2,8 @@
  * Domain types for the Mirador chat surface.
  *
  * These are the frontend's own types — they do not mirror `other-gpt`. The
- * backend contract (snake_case) lives in `BackendChatResponse` and is mapped to
- * the camelCase domain types by `lib/chat/chat-client.ts`. See
+ * backend contract (snake_case) lives in the `Backend*` interfaces and is mapped
+ * to the camelCase domain types by `lib/chat/chat-client.ts`. See
  * `docs/architecture/api-contracts.md` and ADR-0005.
  */
 
@@ -29,6 +29,83 @@ export interface Citation {
   snippet: string;
 }
 
+// ---------------------------------------------------------------------------
+// Chat artifacts (ADR-0005)
+// ---------------------------------------------------------------------------
+
+/** Allowed artifact types (ADR-0005). Unknown values route to the fallback. */
+export type ChatArtifactType =
+  | 'text'
+  | 'table'
+  | 'kpi'
+  | 'chart'
+  | 'report'
+  | 'action_plan'
+  | 'knowledge';
+
+/** Chart kinds rendered with the shadcn chart (Recharts). */
+export type ChartType = 'line' | 'bar' | 'area' | 'pie';
+
+export const CHART_TYPES: readonly ChartType[] = ['line', 'bar', 'area', 'pie'] as const;
+
+/** One chart series — a value key present in each data row. */
+export interface ChartSeries {
+  key: string;
+  label?: string;
+  color?: string;
+}
+
+/** Normalized chart description (from the backend `chart_spec`). */
+export interface ChartSpec {
+  type: ChartType;
+  x: string;
+  y: string[];
+  series?: ChartSeries[];
+  format?: string;
+  labels?: Record<string, string>;
+}
+
+/** Per-artifact recency signal. */
+export interface ArtifactFreshness {
+  generatedAt?: string;
+  status?: string;
+}
+
+/** A row in an artifact's tabular `data`. */
+export type ArtifactRow = Record<string, string | number | null>;
+
+/** A single entry in an `action_plan` artifact. */
+export interface ActionPlanItem {
+  title: string;
+  detail?: string;
+  kind?: 'action' | 'risk' | 'next_step';
+}
+
+/**
+ * A structured result rendered inline under the assistant narrative (ADR-0005).
+ * `artifactType` is typed as `string` so unknown/future types reach the fallback
+ * renderer rather than failing the type-check.
+ */
+export interface ChatArtifact {
+  artifactId: string;
+  artifactType: string;
+  question?: string;
+  period?: string;
+  sourceViews?: string[];
+  freshness?: ArtifactFreshness;
+  summary?: string;
+  data?: ArtifactRow[];
+  chartSpec?: ChartSpec;
+  actions?: ActionPlanItem[];
+  citations?: Citation[];
+  warnings?: string[];
+  traceId?: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Messages
+// ---------------------------------------------------------------------------
+
 /** A user/assistant turn, or a system error bubble. */
 export type ChatUiMessage =
   | {
@@ -39,6 +116,7 @@ export type ChatUiMessage =
       status: ChatMessageStatus;
       citations?: Citation[];
       suggestedQuestions?: string[];
+      artifacts?: ChatArtifact[];
       warnings?: string[];
       traceId?: string | null;
       retryPrompt?: string;
@@ -71,15 +149,15 @@ export interface ChatMessageResponse {
   answer: string;
   citations: Citation[];
   suggestedQuestions: string[];
+  artifacts: ChatArtifact[];
   warnings: string[];
   traceId: string | null;
 }
 
-/**
- * Raw backend contract shape (snake_case), as documented in
- * `docs/architecture/api-contracts.md`. Only the fields the UI consumes are
- * typed here; the rest are tolerated.
- */
+// ---------------------------------------------------------------------------
+// Backend contract (snake_case) — only the fields the UI consumes are typed.
+// ---------------------------------------------------------------------------
+
 export interface BackendCitation {
   document_id: string;
   title: string;
@@ -87,10 +165,49 @@ export interface BackendCitation {
   snippet: string;
 }
 
+export interface BackendFreshness {
+  generated_at?: string | null;
+  status?: string | null;
+}
+
+export interface BackendChartSpec {
+  type?: string | null;
+  x?: string | null;
+  y?: string | string[] | null;
+  series?: { key?: string; label?: string; color?: string }[] | null;
+  format?: string | null;
+  labels?: Record<string, string> | null;
+  [key: string]: unknown;
+}
+
+export interface BackendActionItem {
+  title?: string;
+  detail?: string;
+  kind?: string;
+}
+
+export interface BackendArtifact {
+  artifact_id?: string;
+  artifact_type?: string;
+  question?: string;
+  period?: string;
+  source_views?: string[] | null;
+  freshness?: BackendFreshness | null;
+  summary?: string;
+  data?: Record<string, unknown>[] | null;
+  chart_spec?: BackendChartSpec | null;
+  actions?: BackendActionItem[] | null;
+  citations?: BackendCitation[] | null;
+  warnings?: string[] | null;
+  trace_id?: string | null;
+  [key: string]: unknown;
+}
+
 export interface BackendChatResponse {
   answer: string;
   citations?: BackendCitation[] | null;
   suggested_questions?: string[] | null;
+  artifacts?: BackendArtifact[] | null;
   warnings?: string[] | null;
   trace_id?: string | null;
   [key: string]: unknown;

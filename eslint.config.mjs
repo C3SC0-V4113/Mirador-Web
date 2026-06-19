@@ -124,6 +124,14 @@ const eslintConfig = defineConfig([
       'react-doctor/rerender-memo-before-early-return': 'off',
       'react-doctor/react-compiler-no-manual-memoization': 'off',
       'react-doctor/no-array-index-as-key': 'off',
+      // Recharts-based `chart.tsx` is vendored upstream source: it injects theme
+      // CSS via `dangerouslySetInnerHTML`, imports recharts eagerly, reads context
+      // with `useContext`, and uses upstream filter().map()/inline-context patterns.
+      'react-doctor/prefer-dynamic-import': 'off',
+      'react-doctor/no-react19-deprecated-apis': 'off',
+      'react-doctor/jsx-no-constructed-context-values': 'off',
+      'react-doctor/no-danger': 'off',
+      'react-doctor/js-combine-iterations': 'off',
       'react/boolean-prop-naming': 'off',
     },
   },

@@ -34,6 +34,7 @@ describe('ChatEmptyState', () => {
       answer: 'ok',
       citations: [],
       suggestedQuestions: [],
+      artifacts: [],
       warnings: [],
       traceId: null,
     });

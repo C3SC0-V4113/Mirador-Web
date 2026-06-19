@@ -60,6 +60,7 @@ export function useChatController() {
         answer: response.answer,
         citations: response.citations,
         suggestedQuestions: response.suggestedQuestions,
+        artifacts: response.artifacts,
         warnings: response.warnings,
         traceId: response.traceId,
       });

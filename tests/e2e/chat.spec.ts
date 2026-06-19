@@ -28,4 +28,9 @@ test('logs in and gets a stubbed answer with suggested questions', async ({ page
   await expect(
     page.getByRole('button', { name: '¿Qué riesgos detectas en la operación actual?' })
   ).toBeVisible();
+
+  // Typed artifacts render inline, each with its freshness signal (ADR-0005).
+  await expect(page.getByText('Detalle mensual')).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'mrr' })).toBeVisible();
+  await expect(page.getByText('Datos actuales').first()).toBeVisible();
 });

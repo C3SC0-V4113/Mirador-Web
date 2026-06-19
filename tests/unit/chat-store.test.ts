@@ -46,6 +46,7 @@ describe('chat store messages slice', () => {
       answer: 'Respuesta',
       citations: [{ documentId: 'd1', title: 'Doc', locator: 'p.1', snippet: '...' }],
       suggestedQuestions: ['¿Y el MRR?'],
+      artifacts: [{ artifactId: 'art-1', artifactType: 'kpi', data: [{ mrr: 100 }] }],
       warnings: ['Datos parciales'],
       traceId: 'trace-123',
     });
@@ -54,6 +55,7 @@ describe('chat store messages slice', () => {
     expect(assistant).toMatchObject({ content: 'Respuesta', status: 'complete' });
     expect(assistant.kind === 'message' && assistant.citations).toHaveLength(1);
     expect(assistant.kind === 'message' && assistant.suggestedQuestions).toEqual(['¿Y el MRR?']);
+    expect(assistant.kind === 'message' && assistant.artifacts).toHaveLength(1);
     expect(assistant.kind === 'message' && assistant.warnings).toEqual(['Datos parciales']);
     expect(assistant.kind === 'message' && assistant.traceId).toBe('trace-123');
   });

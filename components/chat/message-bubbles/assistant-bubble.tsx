@@ -3,6 +3,7 @@
 import { Check, Copy, RotateCcw, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 
+import { ArtifactList } from '@/components/chat/artifacts/artifact-list';
 import * as ChatBubble from '@/components/chat/chat-bubble';
 import { ChatMarkdown } from '@/components/chat/chat-markdown';
 import { useChatRuntime } from '@/components/chat/chat-runtime-provider';
@@ -14,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useChatStore } from '@/lib/chat/store';
 import { chatStrings } from '@/lib/chat/strings';
 
-import type { Citation } from '@/lib/chat/types';
+import type { ChatArtifact, Citation } from '@/lib/chat/types';
 
 interface AssistantBubbleProps {
   messageId: string;
@@ -22,6 +23,7 @@ interface AssistantBubbleProps {
   status: 'pending' | 'complete' | 'interrupted';
   citations?: Citation[];
   suggestedQuestions?: string[];
+  artifacts?: ChatArtifact[];
   warnings?: string[];
   traceId?: string | null;
   retryPrompt?: string;
@@ -37,6 +39,7 @@ export function AssistantBubble({
   status,
   citations,
   suggestedQuestions,
+  artifacts,
   warnings,
   traceId,
   retryPrompt,
@@ -72,6 +75,8 @@ export function AssistantBubble({
           <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{text}</p>
         )}
       </ChatBubble.Body>
+
+      {artifacts && artifacts.length > 0 ? <ArtifactList artifacts={artifacts} /> : null}
 
       {warnings && warnings.length > 0 ? (
         <section

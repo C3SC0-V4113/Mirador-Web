@@ -30,6 +30,7 @@ function renderMessage(message: ChatUiMessage, lastAssistantId: string | null) {
       status={message.status === 'error' ? 'interrupted' : message.status}
       citations={message.citations}
       suggestedQuestions={message.suggestedQuestions}
+      artifacts={message.artifacts}
       warnings={message.warnings}
       traceId={message.traceId}
       retryPrompt={message.retryPrompt}

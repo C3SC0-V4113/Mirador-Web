@@ -1,5 +1,5 @@
 import type { ChatStore } from '@/lib/chat/store';
-import type { Citation, ChatRetryRequest, ChatUiMessage } from '@/lib/chat/types';
+import type { ChatArtifact, Citation, ChatRetryRequest, ChatUiMessage } from '@/lib/chat/types';
 import type { StateCreator } from 'zustand';
 
 export interface MessagesSlice {
@@ -17,6 +17,7 @@ export interface MessagesSlice {
     answer: string;
     citations: Citation[];
     suggestedQuestions: string[];
+    artifacts: ChatArtifact[];
     warnings: string[];
     traceId: string | null;
   }) => void;
@@ -68,6 +69,7 @@ export const createMessagesSlice: StateCreator<ChatStore, [], [], MessagesSlice>
     answer,
     citations,
     suggestedQuestions,
+    artifacts,
     warnings,
     traceId,
   }) =>
@@ -80,6 +82,7 @@ export const createMessagesSlice: StateCreator<ChatStore, [], [], MessagesSlice>
               status: 'complete',
               citations: citations.length > 0 ? citations : undefined,
               suggestedQuestions: suggestedQuestions.length > 0 ? suggestedQuestions : undefined,
+              artifacts: artifacts.length > 0 ? artifacts : undefined,
               warnings: warnings.length > 0 ? warnings : undefined,
               traceId: traceId ?? undefined,
             }
