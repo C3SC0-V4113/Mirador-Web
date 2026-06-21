@@ -1,5 +1,5 @@
 import { Brand } from '@/components/brand/brand';
-import { ConversationHistory } from '@/components/chat/conversation-history';
+import { SidebarToggle } from '@/components/chat/sidebar-toggle';
 import { UserMenu } from '@/components/layout/user-menu';
 
 interface AppBarProps {
@@ -11,7 +11,7 @@ export function AppBar({ email, role }: AppBarProps) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b bg-background px-4">
       <div className="flex items-center gap-1">
-        <ConversationHistory />
+        <SidebarToggle />
         <Brand.Root>
           <Brand.Icon />
           <Brand.Wordmark className="hidden sm:inline" />

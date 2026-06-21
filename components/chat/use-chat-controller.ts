@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
 import { sendChatMessage } from '@/lib/chat/chat-client';
@@ -17,6 +18,7 @@ const COPIED_FEEDBACK_MS = 1500;
  * or error. Mount once (in `ChatRuntimeProvider`) so the refs are stable.
  */
 export function useChatController() {
+  const router = useRouter();
   const abortControllerRef = useRef<AbortController | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const manualStopRef = useRef(false);
@@ -52,9 +54,11 @@ export function useChatController() {
       userMessage: trimmed,
     });
 
+    const previousConversationId = store.activeConversationId;
+
     try {
       const response = await sendChatMessage(
-        { content: trimmed, intentMode, conversationId: store.activeConversationId ?? undefined },
+        { content: trimmed, intentMode, conversationId: previousConversationId ?? undefined },
         controller.signal
       );
 
@@ -63,6 +67,14 @@ export function useChatController() {
       // thread instead of starting a new one.
       if (response.conversationId) {
         settled.setActiveConversationId(response.conversationId);
+
+        // First turn of a brand-new conversation: move to its route and refresh
+        // the server-rendered sidebar so it appears there. The hydrator skips
+        // re-seeding because the store is already on this conversation.
+        if (previousConversationId === null) {
+          router.replace(`/chat/${response.conversationId}`);
+          router.refresh();
+        }
       }
       settled.completeAssistant({
         assistantMessageId,

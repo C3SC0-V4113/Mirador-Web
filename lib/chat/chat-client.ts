@@ -1,10 +1,7 @@
 import { chatStrings } from '@/lib/chat/strings';
 import { CHART_TYPES } from '@/lib/chat/types';
 
-import type {
-  FrontendConversationDetail,
-  FrontendConversationMessage,
-} from '@/lib/chat/backend-mapper';
+import type { FrontendConversationMessage } from '@/lib/chat/backend-mapper';
 import type {
   ActionPlanItem,
   ArtifactRow,
@@ -47,50 +44,11 @@ export async function sendChatMessage(
   return normalizeResponse(data);
 }
 
-/** Loads the list of past conversations for the history surface. */
-export async function fetchConversations(signal?: AbortSignal): Promise<ConversationSummary[]> {
-  const response = await fetch('/api/chat/conversations', { signal });
-
-  if (!response.ok) {
-    throw new Error(await parseErrorMessage(response));
-  }
-
-  const data = (await response.json()) as { conversations?: unknown };
-  const list = Array.isArray(data.conversations) ? data.conversations : [];
-
-  return list
-    .map(normalizeConversationSummary)
-    .filter((summary): summary is ConversationSummary => summary !== null);
-}
-
-/** Normalized conversation detail used to rehydrate a thread. */
-export interface ConversationDetail {
-  conversationId: string;
-  messages: ChatUiMessage[];
-}
-
-/** Loads a past conversation's messages + artifacts and maps them to UI messages. */
-export async function fetchConversationDetail(
-  conversationId: string,
-  signal?: AbortSignal
-): Promise<ConversationDetail> {
-  const response = await fetch(`/api/chat/conversations/${encodeURIComponent(conversationId)}`, {
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new Error(await parseErrorMessage(response));
-  }
-
-  const data = (await response.json()) as FrontendConversationDetail;
-
-  return {
-    conversationId: data.conversation_id,
-    messages: (data.messages ?? []).map(toUiMessage),
-  };
-}
-
-function normalizeConversationSummary(value: unknown): ConversationSummary | null {
+/**
+ * Maps the backend conversation list payload into typed summaries. Pure — used
+ * by the server-side data loader (`lib/server/conversations.ts`).
+ */
+export function normalizeConversationSummary(value: unknown): ConversationSummary | null {
   if (typeof value !== 'object' || value === null) {
     return null;
   }
@@ -109,7 +67,8 @@ function normalizeConversationSummary(value: unknown): ConversationSummary | nul
   };
 }
 
-function toUiMessage(message: FrontendConversationMessage): ChatUiMessage {
+/** Maps one past message (snake_case contract) into a UI message. Pure. */
+export function toUiMessage(message: FrontendConversationMessage): ChatUiMessage {
   if (message.role === 'user') {
     return {
       kind: 'message',
