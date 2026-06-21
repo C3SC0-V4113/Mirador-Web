@@ -37,6 +37,16 @@ function resolveSeries(spec: ChartSpec): ChartSeries[] {
   return spec.y.map((key) => ({ key, label: spec.labels?.[key] ?? key }));
 }
 
+/**
+ * A chart is only renderable if its x-axis and at least one y-series exist as
+ * columns in the data. Otherwise we'd plot `undefined` (empty chart + duplicate
+ * keys). Defensive net for any chart_spec that doesn't match its rows.
+ */
+function hasRenderableColumns(spec: ChartSpec, rows: ArtifactRow[]): boolean {
+  const columns = new Set(Object.keys(rows[0] ?? {}));
+  return columns.has(spec.x) && spec.y.some((key) => columns.has(key));
+}
+
 function coerceData(rows: ArtifactRow[], spec: ChartSpec, series: ChartSeries[]): ChartRow[] {
   return rows.map((row) => {
     const xValue = row[spec.x];
@@ -81,7 +91,7 @@ function buildChartElement(spec: ChartSpec, data: ChartRow[], series: ChartSerie
         <ChartTooltip content={<ChartTooltipContent nameKey={spec.x} />} />
         <Pie data={data} dataKey={valueKey} nameKey={spec.x}>
           {data.map((row, index) => (
-            <Cell key={String(row[spec.x])} fill={`var(--chart-${(index % 5) + 1})`} />
+            <Cell key={`cell-${String(index)}`} fill={`var(--chart-${(index % 5) + 1})`} />
           ))}
         </Pie>
       </PieChart>
@@ -137,7 +147,7 @@ export function ChartArtifactImpl({ artifact }: { artifact: ChatArtifact }) {
   const spec = artifact.chartSpec;
   const rows = artifact.data ?? [];
 
-  if (!spec || spec.y.length === 0 || rows.length === 0) {
+  if (!spec || spec.y.length === 0 || rows.length === 0 || !hasRenderableColumns(spec, rows)) {
     return <EmptyData />;
   }
 

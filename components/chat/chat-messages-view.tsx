@@ -11,7 +11,7 @@ import { useChatStore } from '@/lib/chat/store';
 
 import type { ChatUiMessage } from '@/lib/chat/types';
 
-function renderMessage(message: ChatUiMessage, lastAssistantId: string | null) {
+function renderMessage(message: ChatUiMessage) {
   if (message.kind === 'error') {
     return (
       <ErrorBubble key={message.id} text={message.content} retryPrompt={message.retryPrompt} />
@@ -34,19 +34,8 @@ function renderMessage(message: ChatUiMessage, lastAssistantId: string | null) {
       warnings={message.warnings}
       traceId={message.traceId}
       retryPrompt={message.retryPrompt}
-      isLastAssistant={message.id === lastAssistantId}
     />
   );
-}
-
-function findLastAssistantId(messages: ChatUiMessage[]): string | null {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message.kind === 'message' && message.role === 'assistant') {
-      return message.id;
-    }
-  }
-  return null;
 }
 
 export function ChatMessagesView() {
@@ -69,13 +58,11 @@ export function ChatMessagesView() {
     );
   }
 
-  const lastAssistantId = findLastAssistantId(messages);
-
   return (
     <div ref={rootRef} className="min-h-0 flex-1">
       <ScrollArea className="size-full min-h-0">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-6">
-          {messages.map((message) => renderMessage(message, lastAssistantId))}
+          {messages.map((message) => renderMessage(message))}
         </div>
       </ScrollArea>
     </div>

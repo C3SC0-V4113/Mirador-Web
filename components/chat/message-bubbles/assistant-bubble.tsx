@@ -7,7 +7,6 @@ import { ArtifactList } from '@/components/chat/artifacts/artifact-list';
 import * as ChatBubble from '@/components/chat/chat-bubble';
 import { ChatMarkdown } from '@/components/chat/chat-markdown';
 import { useChatRuntime } from '@/components/chat/chat-runtime-provider';
-import { QuickActions } from '@/components/chat/quick-actions';
 import { SuggestionPills } from '@/components/chat/suggestion-pills';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
@@ -27,7 +26,6 @@ interface AssistantBubbleProps {
   warnings?: string[];
   traceId?: string | null;
   retryPrompt?: string;
-  isLastAssistant?: boolean;
 }
 
 const strings = chatStrings.message;
@@ -43,7 +41,6 @@ export function AssistantBubble({
   warnings,
   traceId,
   retryPrompt,
-  isLastAssistant,
 }: AssistantBubbleProps) {
   const isCopied = useChatStore((state) => state.copiedMessageId === messageId);
   const { copyMessageText, retryLastFailedPrompt } = useChatRuntime();
@@ -120,15 +117,6 @@ export function AssistantBubble({
             {strings.suggestedTitle}
           </p>
           <SuggestionPills questions={suggestedQuestions} aria-label={strings.suggestedTitle} />
-        </section>
-      ) : null}
-
-      {isLastAssistant && status === 'complete' && text.trim() ? (
-        <section className="mt-3" aria-label={chatStrings.quickActions.title}>
-          <p className="mb-1.5 text-xs font-medium text-muted-foreground">
-            {chatStrings.quickActions.title}
-          </p>
-          <QuickActions subject={artifacts?.[0]?.question} />
         </section>
       ) : null}
 

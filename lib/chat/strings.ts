@@ -59,26 +59,6 @@ export const chatStrings = {
       '¿Qué dice el manifiesto sobre nuestra misión?',
     ],
   },
-  quickActions: {
-    title: 'Acciones rápidas',
-    actions: [
-      {
-        id: 'compare',
-        label: 'Comparar',
-        prompt: 'Compara estos resultados con el periodo anterior.',
-      },
-      {
-        id: 'explain',
-        label: 'Explicar',
-        prompt: 'Explica las causas detrás de estos resultados.',
-      },
-      {
-        id: 'forecast',
-        label: 'Pronosticar',
-        prompt: 'Proyecta la tendencia para los próximos 3 meses.',
-      },
-    ],
-  },
   artifacts: {
     period: 'Periodo',
     sources: 'Fuentes',
