@@ -44,6 +44,55 @@ export async function sendChatMessage(
   return normalizeResponse(data);
 }
 
+/** A visualization edit: natural language, or a structured chart-type/axis change. */
+export type ChartVisualizationEdit =
+  | { message: string }
+  | { chartSpec: { type: ChartType; x: string | null; y: string } };
+
+/** Result of a visualization edit: applied spec, or a redirect to the main chat. */
+export type ChartVisualizationResult =
+  | { requiresMainChat: true; reason: string }
+  | { requiresMainChat: false; chartSpec: ChartSpec };
+
+/**
+ * Edits a chart artifact's visualization via the BFF. Supports the structured
+ * mode (chart type / axes, no LLM) and natural language (which may redirect to
+ * the main chat when the request needs new data).
+ */
+export async function editChartVisualization(
+  artifactId: string,
+  edit: ChartVisualizationEdit,
+  signal?: AbortSignal
+): Promise<ChartVisualizationResult> {
+  const body = 'message' in edit ? { message: edit.message } : { chart_spec: edit.chartSpec };
+
+  const response = await fetch(
+    `/api/chat/artifacts/${encodeURIComponent(artifactId)}/visualization`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+
+  const data = (await response.json()) as {
+    requires_main_chat?: boolean;
+    reason?: string;
+    chart_spec?: BackendChartSpec;
+  };
+
+  if (data.requires_main_chat) {
+    return { requiresMainChat: true, reason: typeof data.reason === 'string' ? data.reason : '' };
+  }
+
+  return { requiresMainChat: false, chartSpec: normalizeChartSpec(data.chart_spec ?? {}) };
+}
+
 /**
  * Maps the backend conversation list payload into typed summaries. Pure — used
  * by the server-side data loader (`lib/server/conversations.ts`).

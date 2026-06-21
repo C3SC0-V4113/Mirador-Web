@@ -128,7 +128,7 @@ export function AssistantBubble({
           <p className="mb-1.5 text-xs font-medium text-muted-foreground">
             {chatStrings.quickActions.title}
           </p>
-          <QuickActions />
+          <QuickActions subject={artifacts?.[0]?.question} />
         </section>
       ) : null}
 

@@ -118,6 +118,13 @@ export function useChatController() {
     await runRequest(input, intentMode, { clearComposer: true });
   }
 
+  // Sends a prompt directly (suggestions, quick actions) without touching the
+  // composer input. Defaults to the user's current intent mode.
+  async function sendPrompt(prompt: string, mode?: ChatIntentMode) {
+    const intentMode = mode ?? useChatStore.getState().intentMode;
+    await runRequest(prompt, intentMode);
+  }
+
   function stopGeneration() {
     const controller = abortControllerRef.current;
     if (!controller) {
@@ -172,5 +179,5 @@ export function useChatController() {
     };
   }, []);
 
-  return { sendMessage, stopGeneration, retryLastFailedPrompt, copyMessageText };
+  return { sendMessage, sendPrompt, stopGeneration, retryLastFailedPrompt, copyMessageText };
 }

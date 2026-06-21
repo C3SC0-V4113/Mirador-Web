@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { ArtifactRenderer } from '@/components/chat/artifacts/artifact-renderer';
+import { ChatRuntimeProvider } from '@/components/chat/chat-runtime-provider';
 import { chatStrings } from '@/lib/chat/strings';
 
 import type { ChatArtifact } from '@/lib/chat/types';
@@ -45,16 +46,19 @@ describe('ArtifactRenderer', () => {
   });
 
   it('surfaces the artifact question and freshness in the frame', () => {
+    // Chart artifacts include interactive controls that read the chat runtime.
     render(
-      <ArtifactRenderer
-        artifact={base({
-          artifactType: 'chart',
-          question: 'Evolución del MRR',
-          freshness: { status: 'fresh' },
-          chartSpec: { type: 'line', x: 'month', y: ['mrr'] },
-          data: [{ month: 'Ene', mrr: 1 }],
-        })}
-      />
+      <ChatRuntimeProvider>
+        <ArtifactRenderer
+          artifact={base({
+            artifactType: 'chart',
+            question: 'Evolución del MRR',
+            freshness: { status: 'fresh' },
+            chartSpec: { type: 'line', x: 'month', y: ['mrr'] },
+            data: [{ month: 'Ene', mrr: 1 }],
+          })}
+        />
+      </ChatRuntimeProvider>
     );
 
     expect(screen.getByText('Evolución del MRR')).toBeDefined();

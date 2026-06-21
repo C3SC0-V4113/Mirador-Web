@@ -116,6 +116,20 @@ export const chatStrings = {
     save: 'Guardar',
     cancel: 'Cancelar',
   },
+  chartControls: {
+    label: 'Tipo de gráfico',
+    types: {
+      line: 'Línea',
+      bar: 'Barras',
+      area: 'Área',
+      pie: 'Torta',
+    },
+    askLabel: 'Pedir un cambio al gráfico',
+    askPlaceholder: 'Pedí un cambio… (ej. "mostralo por cliente")',
+    send: 'Aplicar',
+    routedToMain: 'Ese cambio necesita nuevos datos; lo envié al chat.',
+    error: 'No se pudo actualizar el gráfico.',
+  },
   errors: {
     requestFailed: 'No se pudo completar la solicitud. Inténtalo de nuevo.',
     noResponse: 'El servidor no devolvió una respuesta.',

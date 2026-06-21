@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
+import { ChartControls } from '@/components/chat/artifacts/chart-controls';
 import { EmptyData } from '@/components/chat/artifacts/empty-data';
 
 import type { ChatArtifact } from '@/lib/chat/types';
@@ -20,5 +21,10 @@ export function ChartArtifact({ artifact }: { artifact: ChatArtifact }) {
   if (!artifact.chartSpec) {
     return <EmptyData />;
   }
-  return <ChartArtifactImpl artifact={artifact} />;
+  return (
+    <>
+      <ChartControls artifact={artifact} />
+      <ChartArtifactImpl artifact={artifact} />
+    </>
+  );
 }

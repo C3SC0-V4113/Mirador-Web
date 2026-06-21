@@ -2,7 +2,6 @@
 
 import { useChatRuntime } from '@/components/chat/chat-runtime-provider';
 import { Badge } from '@/components/ui/badge';
-import { useChatStore } from '@/lib/chat/store';
 
 interface SuggestionPillsProps {
   questions: readonly string[];
@@ -11,15 +10,14 @@ interface SuggestionPillsProps {
 
 /**
  * Clickable suggestion pills shared by the empty-state starters and the
- * per-answer `suggested_questions`. Selecting one fills the composer and sends
- * it through the shared chat runtime.
+ * per-answer `suggested_questions`. Selecting one sends it through the shared
+ * chat runtime without touching the composer input.
  */
 export function SuggestionPills({ questions, 'aria-label': ariaLabel }: SuggestionPillsProps) {
-  const { sendMessage } = useChatRuntime();
+  const { sendPrompt } = useChatRuntime();
 
   const handleSelect = (question: string) => {
-    useChatStore.getState().setInput(question);
-    void sendMessage();
+    void sendPrompt(question);
   };
 
   return (

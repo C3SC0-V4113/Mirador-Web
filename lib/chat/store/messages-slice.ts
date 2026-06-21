@@ -1,5 +1,11 @@
 import type { ChatStore } from '@/lib/chat/store';
-import type { ChatArtifact, Citation, ChatRetryRequest, ChatUiMessage } from '@/lib/chat/types';
+import type {
+  ChartSpec,
+  ChatArtifact,
+  Citation,
+  ChatRetryRequest,
+  ChatUiMessage,
+} from '@/lib/chat/types';
 import type { StateCreator } from 'zustand';
 
 export interface MessagesSlice {
@@ -22,6 +28,7 @@ export interface MessagesSlice {
     traceId: string | null;
   }) => void;
   interruptedAssistant: (input: { assistantMessageId: string; retryPrompt: string }) => void;
+  updateArtifactChartSpec: (input: { artifactId: string; chartSpec: ChartSpec }) => void;
   removeMessage: (messageId: string) => void;
   appendError: (input: { message: string; retryPrompt?: string }) => void;
   removeErrors: () => void;
@@ -95,6 +102,21 @@ export const createMessagesSlice: StateCreator<ChatStore, [], [], MessagesSlice>
       messages: state.messages.map((message) =>
         message.id === assistantMessageId && message.kind === 'message'
           ? { ...message, status: 'interrupted', retryPrompt }
+          : message
+      ),
+    })),
+
+  updateArtifactChartSpec: ({ artifactId, chartSpec }) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.kind === 'message' &&
+        message.artifacts?.some((artifact) => artifact.artifactId === artifactId)
+          ? {
+              ...message,
+              artifacts: message.artifacts.map((artifact) =>
+                artifact.artifactId === artifactId ? { ...artifact, chartSpec } : artifact
+              ),
+            }
           : message
       ),
     })),
