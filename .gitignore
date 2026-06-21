@@ -35,3 +35,4 @@ next-env.d.ts
 .react-scan/
 playwright-report/
 test-results/
+.atl
