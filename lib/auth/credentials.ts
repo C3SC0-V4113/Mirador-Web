@@ -1,3 +1,5 @@
+import { SESSION_COOKIE_NAME } from '@/lib/auth/backend-session';
+
 /**
  * Verifies CEO credentials against the Mirador backend (`mirador-core`).
  *
@@ -25,9 +27,6 @@ interface BackendLoginResponse {
   user?: { id?: string; email?: string; role?: string };
   expires_at?: string;
 }
-
-/** Cookie name the backend issues; must match `SESSION_COOKIE_NAME` in mirador-core. */
-const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? 'mirador_session';
 
 /**
  * Extracts the backend session cookie value from a login response. Prefers the
