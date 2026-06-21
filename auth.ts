@@ -6,9 +6,14 @@ import { verifyCredentials } from '@/lib/auth/credentials';
 // `signIn`/`signOut` are intentionally not re-exported: the client surfaces use
 // the ones from `next-auth/react`. Add them here if server-side auth actions are
 // introduced later.
+// Keep the NextAuth session no longer-lived than the backend session token it
+// carries, so an expired `mirador_session` can't outlive its NextAuth wrapper
+// and surface as a silent 401 on proxied requests.
+const SESSION_TTL_SECONDS = Number(process.env.SESSION_TTL_SECONDS ?? '86400');
+
 export const { handlers, auth } = NextAuth({
   trustHost: true,
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt', maxAge: SESSION_TTL_SECONDS },
   pages: { signIn: '/login' },
   providers: [
     Credentials({
@@ -42,13 +47,13 @@ export const { handlers, auth } = NextAuth({
     jwt: ({ token, user }) => {
       if (user) {
         token.role = user.role;
-        token.accessToken = user.accessToken;
+        token.sessionCookie = user.sessionCookie;
       }
 
       return token;
     },
     session: ({ session, token }) => {
-      session.accessToken = token.accessToken as string | undefined;
+      session.sessionCookie = token.sessionCookie as string | undefined;
 
       if (session.user) {
         session.user.role = token.role as string | undefined;

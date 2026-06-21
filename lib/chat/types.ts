@@ -7,12 +7,13 @@
  * `docs/architecture/api-contracts.md` and ADR-0005.
  */
 
-/** Composer intent modes shipped in this iteration (ADR-0002 / ADR-0005). */
-export type ChatIntentMode = 'responder' | 'analizar' | 'plan';
+/** Composer intent modes. Mirrors `mirador-core`'s `intent_mode` enum. */
+export type ChatIntentMode = 'responder' | 'analizar' | 'reporte_visual' | 'plan';
 
 export const CHAT_INTENT_MODES: readonly ChatIntentMode[] = [
   'responder',
   'analizar',
+  'reporte_visual',
   'plan',
 ] as const;
 
@@ -136,6 +137,14 @@ export interface ChatRetryRequest {
   intentMode: ChatIntentMode;
 }
 
+/** A past conversation shown in the history surface. */
+export interface ConversationSummary {
+  id: string;
+  title: string | null;
+  lastMessage: string | null;
+  updatedAt: string;
+}
+
 /** Request the UI sends to the BFF route handler. */
 export interface ChatMessageRequest {
   content: string;
@@ -152,6 +161,8 @@ export interface ChatMessageResponse {
   artifacts: ChatArtifact[];
   warnings: string[];
   traceId: string | null;
+  /** Conversation this turn belongs to; threaded into the next request. */
+  conversationId: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -210,5 +221,6 @@ export interface BackendChatResponse {
   artifacts?: BackendArtifact[] | null;
   warnings?: string[] | null;
   trace_id?: string | null;
+  conversation_id?: string | null;
   [key: string]: unknown;
 }

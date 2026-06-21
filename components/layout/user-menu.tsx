@@ -20,6 +20,17 @@ interface UserMenuProps {
   role?: string;
 }
 
+async function handleSignOut() {
+  // Revoke the backend session first (best-effort), then clear the local one.
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch {
+    // Ignore — sign out locally regardless of backend reachability.
+  }
+
+  await signOut({ redirectTo: '/login' });
+}
+
 export function UserMenu({ email, role }: UserMenuProps) {
   const initial = email.charAt(0).toUpperCase() || 'U';
 
@@ -50,10 +61,7 @@ export function UserMenu({ email, role }: UserMenuProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => void signOut({ redirectTo: '/login' })}
-          >
+          <DropdownMenuItem variant="destructive" onClick={() => void handleSignOut()}>
             <LogOutIcon />
             Cerrar sesión
           </DropdownMenuItem>

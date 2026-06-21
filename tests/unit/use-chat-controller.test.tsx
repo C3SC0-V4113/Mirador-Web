@@ -21,6 +21,7 @@ function resetStore() {
     pendingAssistantMessageId: null,
     copiedMessageId: null,
     errorMessage: '',
+    activeConversationId: null,
   });
 }
 
@@ -38,6 +39,7 @@ describe('useChatController', () => {
       artifacts: [],
       warnings: [],
       traceId: 'trace-1',
+      conversationId: 'conv-1',
     });
 
     const { result } = renderHook(() => useChatController());
@@ -47,11 +49,13 @@ describe('useChatController', () => {
       await result.current.sendMessage();
     });
 
-    const { messages, isSubmitting } = useChatStore.getState();
+    const { messages, isSubmitting, activeConversationId } = useChatStore.getState();
     expect(sendChatMessageMock).toHaveBeenCalledWith(
-      { content: '¿Cómo va el MRR?', intentMode: 'responder' },
+      { content: '¿Cómo va el MRR?', intentMode: 'responder', conversationId: undefined },
       expect.any(AbortSignal)
     );
+    // The returned conversation id is threaded for the next turn.
+    expect(activeConversationId).toBe('conv-1');
     expect(messages).toHaveLength(2);
     expect(messages[1]).toMatchObject({
       role: 'assistant',

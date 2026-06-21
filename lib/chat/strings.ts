@@ -23,6 +23,10 @@ export const chatStrings = {
       label: 'Analizar',
       description: 'Prioriza el análisis de métricas.',
     },
+    reporte_visual: {
+      label: 'Reporte',
+      description: 'Prioriza un reporte visual con gráfico y resumen.',
+    },
     plan: {
       label: 'Plan',
       description: 'Prioriza un plan de acción estructurado.',
@@ -98,6 +102,15 @@ export const chatStrings = {
       risk: 'Riesgo',
       next_step: 'Próximo paso',
     },
+  },
+  history: {
+    open: 'Historial de conversaciones',
+    title: 'Conversaciones',
+    newConversation: 'Nueva conversación',
+    empty: 'Todavía no tienes conversaciones.',
+    loading: 'Cargando…',
+    untitled: 'Conversación sin título',
+    close: 'Cerrar historial',
   },
   errors: {
     requestFailed: 'No se pudo completar la solicitud. Inténtalo de nuevo.',

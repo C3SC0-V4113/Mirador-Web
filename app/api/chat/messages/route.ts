@@ -1,4 +1,6 @@
 import { auth } from '@/auth';
+import { backendAuthHeaders } from '@/lib/auth/backend-session';
+import { toFrontendChatResponse } from '@/lib/chat/backend-mapper';
 
 import type { BackendArtifact, BackendChatResponse } from '@/lib/chat/types';
 
@@ -14,7 +16,6 @@ interface IncomingBody {
   content?: unknown;
   intentMode?: unknown;
   conversationId?: unknown;
-  contextArtifactId?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -38,8 +39,6 @@ export async function POST(request: Request) {
 
   const intentMode = typeof body.intentMode === 'string' ? body.intentMode : 'responder';
   const conversationId = typeof body.conversationId === 'string' ? body.conversationId : undefined;
-  const contextArtifactId =
-    typeof body.contextArtifactId === 'string' ? body.contextArtifactId : undefined;
 
   const apiUrl = process.env.MIRADOR_API_URL;
 
@@ -50,22 +49,28 @@ export async function POST(request: Request) {
         cache: 'no-store',
         headers: {
           'Content-Type': 'application/json',
-          ...(session.accessToken ? { Authorization: `Bearer ${session.accessToken}` } : {}),
+          ...backendAuthHeaders(session),
         },
+        // The backend contract is `message` (not `content`); `conversation_id`
+        // is omitted when absent so the backend opens a fresh conversation.
         body: JSON.stringify({
-          content,
+          message: content,
           intent_mode: intentMode,
-          conversation_id: conversationId,
-          context_artifact_id: contextArtifactId,
+          ...(conversationId ? { conversation_id: conversationId } : {}),
         }),
       });
 
       if (!upstream.ok) {
-        return Response.json({ error: 'El servicio de chat no está disponible.' }, { status: 502 });
+        return Response.json(
+          { error: await extractBackendError(upstream) },
+          {
+            status: upstream.status,
+          }
+        );
       }
 
-      const data = (await upstream.json()) as BackendChatResponse;
-      return Response.json(data);
+      const raw = (await upstream.json()) as unknown;
+      return Response.json(toFrontendChatResponse(raw));
     } catch {
       return Response.json({ error: 'No se pudo contactar el servicio de chat.' }, { status: 502 });
     }
@@ -93,6 +98,29 @@ export async function POST(request: Request) {
   };
 
   return Response.json(stub);
+}
+
+/**
+ * Flattens the backend error envelope (`{ error: { code, message } }`) into the
+ * `{ error: string }` shape the chat client expects, so the real backend message
+ * reaches the UI instead of a generic fallback.
+ */
+async function extractBackendError(response: Response): Promise<string> {
+  try {
+    const data = (await response.json()) as { error?: { message?: unknown } | string };
+
+    if (typeof data.error === 'string' && data.error) {
+      return data.error;
+    }
+
+    if (data.error && typeof data.error === 'object' && typeof data.error.message === 'string') {
+      return data.error.message;
+    }
+  } catch {
+    // fall through to the generic message
+  }
+
+  return 'El servicio de chat no está disponible.';
 }
 
 function buildStubArtifacts(intentMode: string): BackendArtifact[] {

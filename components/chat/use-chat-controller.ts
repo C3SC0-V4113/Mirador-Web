@@ -53,9 +53,18 @@ export function useChatController() {
     });
 
     try {
-      const response = await sendChatMessage({ content: trimmed, intentMode }, controller.signal);
+      const response = await sendChatMessage(
+        { content: trimmed, intentMode, conversationId: store.activeConversationId ?? undefined },
+        controller.signal
+      );
 
-      useChatStore.getState().completeAssistant({
+      const settled = useChatStore.getState();
+      // Thread the conversation so the next turn continues the same backend
+      // thread instead of starting a new one.
+      if (response.conversationId) {
+        settled.setActiveConversationId(response.conversationId);
+      }
+      settled.completeAssistant({
         assistantMessageId,
         answer: response.answer,
         citations: response.citations,
@@ -64,7 +73,7 @@ export function useChatController() {
         warnings: response.warnings,
         traceId: response.traceId,
       });
-      useChatStore.getState().setLastFailedRequest(null);
+      settled.setLastFailedRequest(null);
     } catch (error) {
       const current = useChatStore.getState();
 

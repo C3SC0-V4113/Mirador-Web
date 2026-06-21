@@ -37,6 +37,7 @@ describe('ChatEmptyState', () => {
       artifacts: [],
       warnings: [],
       traceId: null,
+      conversationId: null,
     });
   });
 
