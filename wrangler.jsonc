@@ -12,6 +12,6 @@
     "AUTH_TRUST_HOST": "true",
     "SESSION_COOKIE_NAME": "mirador_session",
     // Reemplazar por la URL pública del backend (Web API Gateway / Railway).
-    "MIRADOR_API_URL": "https://REEMPLAZAR-con-tu-backend",
+    "MIRADOR_API_URL": "https://mirador-core-production.up.railway.app",
   },
 }

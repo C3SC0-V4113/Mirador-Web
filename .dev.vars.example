@@ -1,0 +1,13 @@
+# Local secrets for `npm run preview` (the Cloudflare Workers runtime).
+# Copy to `.dev.vars` (gitignored) and fill in. For real deploys, set secrets
+# with `wrangler secret put <NAME>` instead.
+
+# Signs the NextAuth session cookie. Generate: openssl rand -base64 32
+AUTH_SECRET=replace-with-a-strong-secret
+
+# Shared origin secret sent as `x-mirador-origin` on every backend call.
+# Must match mirador-core. In production set it with `wrangler secret put MIRADOR_ORIGIN_SECRET`.
+MIRADOR_ORIGIN_SECRET=replace-with-the-shared-origin-secret
+
+# Optional: makes the OpenNext build/preview load development env values.
+NEXTJS_ENV=development

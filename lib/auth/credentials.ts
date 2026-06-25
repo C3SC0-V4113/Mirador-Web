@@ -1,4 +1,4 @@
-import { SESSION_COOKIE_NAME } from '@/lib/auth/backend-session';
+import { backendOriginHeaders, SESSION_COOKIE_NAME } from '@/lib/auth/backend-session';
 
 /**
  * Verifies CEO credentials against the Mirador backend (`mirador-core`).
@@ -83,7 +83,7 @@ export async function verifyCredentials(
     try {
       const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...backendOriginHeaders() },
         body: JSON.stringify({ email, password }),
       });
 
