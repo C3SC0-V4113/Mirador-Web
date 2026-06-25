@@ -21,15 +21,33 @@ Then open `/login`. The app has two surfaces: `/login` and `/chat` (see
 Copy `.env.example` to `.env.local` and fill it in. Auth uses Auth.js (NextAuth v5) with a JWT
 session (no database), kept OpenNext/Cloudflare-compatible.
 
-| Variable           | Purpose                                                                                |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| `AUTH_SECRET`      | Signs the session cookie. Generate with `openssl rand -base64 32`.                     |
-| `AUTH_TRUST_HOST`  | Set `true` behind a proxy / on Cloudflare Workers.                                     |
-| `MIRADOR_API_URL`  | `mirador-core` base URL. When set, login POSTs to `${MIRADOR_API_URL}/api/auth/login`. |
-| `DEV_CEO_EMAIL`    | Dev-only single CEO email, used when `MIRADOR_API_URL` is empty.                       |
-| `DEV_CEO_PASSWORD` | Dev-only single CEO password, used when `MIRADOR_API_URL` is empty.                    |
+| Variable              | Purpose                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------ |
+| `AUTH_SECRET`         | Signs the session cookie. Generate with `openssl rand -base64 32`.                                     |
+| `AUTH_TRUST_HOST`     | Set `true` behind a proxy / on Cloudflare Workers.                                                     |
+| `MIRADOR_API_URL`     | `mirador-core` base URL. When set, login POSTs to `${MIRADOR_API_URL}/api/auth/login`.                 |
+| `SESSION_COOKIE_NAME` | Backend session cookie name forwarded by the BFF. Must match mirador-core (default `mirador_session`). |
+| `SESSION_TTL_SECONDS` | Optional. Aligns the NextAuth session `maxAge` with the backend token TTL (default `86400`).           |
+| `DEV_CEO_EMAIL`       | Dev-only single CEO email, used when `MIRADOR_API_URL` is empty.                                       |
+| `DEV_CEO_PASSWORD`    | Dev-only single CEO password, used when `MIRADOR_API_URL` is empty.                                    |
 
 Until `mirador-core` exists, leave `MIRADOR_API_URL` empty and log in with the dev CEO credentials.
+
+## Deploy (Cloudflare Workers via OpenNext)
+
+Per [ADR-0006](docs/adr/0006-deploy-on-cloudflare-workers-with-opennext.md), the frontend deploys to
+Cloudflare Workers using [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare). The backend
+(`mirador-core`) is **not** on Workers — it runs on Railway behind the Web API Gateway.
+
+1. `npx wrangler login` (one-time).
+2. Set non-secret config in `wrangler.jsonc` → `vars` (notably `MIRADOR_API_URL`). Keep the real
+   secret out of the repo: `npx wrangler secret put AUTH_SECRET`.
+3. Smoke test locally in the Workers runtime: `npm run preview`.
+4. Deploy: `npm run deploy`.
+
+Notes: the app uses no Next.js Proxy/Middleware (route protection lives in server components, which
+is edge-friendly) and no `runtime = "edge"` route exports — both required for OpenNext. `.dev.vars`
+holds local secrets for `npm run preview` and is gitignored.
 
 ## Quality
 

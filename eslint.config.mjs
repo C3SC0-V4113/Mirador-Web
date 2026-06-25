@@ -138,9 +138,12 @@ const eslintConfig = defineConfig([
   eslintConfigPrettier,
   globalIgnores([
     '.next/**',
+    '.open-next/**',
+    '.wrangler/**',
     'out/**',
     'build/**',
     'next-env.d.ts',
+    'cloudflare-env.d.ts',
     '.agents/**',
     '.claude/**',
     'coverage/**',
