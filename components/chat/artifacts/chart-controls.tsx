@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { editChartVisualization } from '@/lib/chat/chat-client';
+import { useDynamicChartsPreference } from '@/lib/chat/dynamic-charts-preference';
 import { useChatStore } from '@/lib/chat/store';
 import { chatStrings } from '@/lib/chat/strings';
 import { CHART_TYPES } from '@/lib/chat/types';
@@ -15,6 +16,12 @@ import { CHART_TYPES } from '@/lib/chat/types';
 import type { ChartSpec, ChartType, ChatArtifact } from '@/lib/chat/types';
 
 const strings = chatStrings.chartControls;
+
+function asksForDynamicVisual(message: string) {
+  return /heatmap|mapa de calor|scatter|dispersi[oó]n|histogram|histograma|distribution|distribuci[oó]n|facetas?|facets?|capas?|layers?|small multiples|composici[oó]n|composition|apilad[ao] normalizad[ao]|normalized stacking|din[aá]mic[ao]/iu.test(
+    message
+  );
+}
 
 /**
  * Mini-edit toolbar for a chart artifact: quick chart-type toggles (applied
@@ -24,6 +31,10 @@ const strings = chatStrings.chartControls;
 export function ChartControls({ artifact }: { artifact: ChatArtifact }) {
   const { sendPrompt } = useChatRuntime();
   const updateArtifactChartSpec = useChatStore((state) => state.updateArtifactChartSpec);
+  const updateArtifactDynamicChartSpec = useChatStore(
+    (state) => state.updateArtifactDynamicChartSpec
+  );
+  const dynamicChartsEnabled = useDynamicChartsPreference((state) => state.enabled);
 
   const [ask, setAsk] = useState('');
   const [isBusy, setIsBusy] = useState(false);
@@ -53,11 +64,20 @@ export function ChartControls({ artifact }: { artifact: ChatArtifact }) {
     setIsBusy(true);
 
     try {
-      const result = await editChartVisualization(artifact.artifactId, {
-        chartSpec: { type: nextType, x: spec.x || null, y: spec.y[0] ?? '' },
-      });
+      const result = await editChartVisualization(
+        artifact.artifactId,
+        {
+          chartSpec: { type: nextType, x: spec.x || null, y: spec.y[0] ?? '' },
+        },
+        dynamicChartsEnabled
+      );
       if (!result.requiresMainChat) {
-        applySpec(result.chartSpec);
+        if (result.chartSpec) {
+          applySpec(result.chartSpec);
+        }
+        if (result.note) {
+          setNote(result.note);
+        }
       }
     } catch {
       applySpec(previous); // rollback
@@ -76,15 +96,35 @@ export function ChartControls({ artifact }: { artifact: ChatArtifact }) {
     }
 
     setNote(null);
+
+    if (!dynamicChartsEnabled && asksForDynamicVisual(message)) {
+      setNote('Activá gráficas dinámicas para convertir esta visualización avanzada.');
+      return;
+    }
+
     setIsBusy(true);
 
     try {
-      const result = await editChartVisualization(artifact.artifactId, { message });
+      const result = await editChartVisualization(
+        artifact.artifactId,
+        { message },
+        dynamicChartsEnabled
+      );
       if (result.requiresMainChat) {
         setNote(strings.routedToMain);
         void sendPrompt(message);
+      } else if (result.dynamicChartSpec) {
+        updateArtifactDynamicChartSpec({
+          artifactId: artifact.artifactId,
+          chartSpec: result.dynamicChartSpec,
+        });
       } else {
-        applySpec(result.chartSpec);
+        if (result.chartSpec) {
+          applySpec(result.chartSpec);
+        }
+        if (result.note) {
+          setNote(result.note);
+        }
       }
       setAsk('');
     } catch {

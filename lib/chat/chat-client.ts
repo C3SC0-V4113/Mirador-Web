@@ -18,6 +18,7 @@ import type {
   ChatUiMessage,
   Citation,
   ConversationSummary,
+  DynamicChartSpec,
 } from '@/lib/chat/types';
 
 /**
@@ -52,7 +53,17 @@ export type ChartVisualizationEdit =
 /** Result of a visualization edit: applied spec, or a redirect to the main chat. */
 export type ChartVisualizationResult =
   | { requiresMainChat: true; reason: string }
-  | { requiresMainChat: false; chartSpec: ChartSpec };
+  | {
+      requiresMainChat: false;
+      artifactType?: ChatArtifact['artifactType'];
+      chartSpec?: ChartSpec;
+      dynamicChartSpec?: DynamicChartSpec;
+      note?: string;
+    };
+
+export type DynamicChartVisualizationResult =
+  | { requiresMainChat: true; reason: string }
+  | { requiresMainChat: false; chartSpec: DynamicChartSpec };
 
 /**
  * Edits a chart artifact's visualization via the BFF. Supports the structured
@@ -62,9 +73,13 @@ export type ChartVisualizationResult =
 export async function editChartVisualization(
   artifactId: string,
   edit: ChartVisualizationEdit,
+  dynamicChartsEnabled = false,
   signal?: AbortSignal
 ): Promise<ChartVisualizationResult> {
-  const body = 'message' in edit ? { message: edit.message } : { chart_spec: edit.chartSpec };
+  const body =
+    'message' in edit
+      ? { message: edit.message, dynamic_charts_enabled: dynamicChartsEnabled }
+      : { chart_spec: edit.chartSpec, dynamic_charts_enabled: dynamicChartsEnabled };
 
   const response = await fetch(
     `/api/chat/artifacts/${encodeURIComponent(artifactId)}/visualization`,
@@ -83,14 +98,62 @@ export async function editChartVisualization(
   const data = (await response.json()) as {
     requires_main_chat?: boolean;
     reason?: string;
-    chart_spec?: BackendChartSpec;
+    artifact_type?: string;
+    chart_spec?: BackendChartSpec | DynamicChartSpec | null;
+    note?: string;
   };
 
   if (data.requires_main_chat) {
     return { requiresMainChat: true, reason: typeof data.reason === 'string' ? data.reason : '' };
   }
 
-  return { requiresMainChat: false, chartSpec: normalizeChartSpec(data.chart_spec ?? {}) };
+  const isDynamic = data.artifact_type === 'dynamic_chart';
+
+  return {
+    requiresMainChat: false,
+    artifactType: data.artifact_type as ChatArtifact['artifactType'] | undefined,
+    chartSpec: !isDynamic
+      ? normalizeChartSpec((data.chart_spec ?? {}) as BackendChartSpec)
+      : undefined,
+    dynamicChartSpec: isDynamic && isRecord(data.chart_spec) ? data.chart_spec : undefined,
+    note: typeof data.note === 'string' ? data.note : undefined,
+  };
+}
+
+export async function editDynamicChartVisualization(
+  artifactId: string,
+  message: string,
+  dynamicChartsEnabled = true,
+  signal?: AbortSignal
+): Promise<DynamicChartVisualizationResult> {
+  const response = await fetch(
+    `/api/chat/artifacts/${encodeURIComponent(artifactId)}/visualization`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, dynamic_charts_enabled: dynamicChartsEnabled }),
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+
+  const data = (await response.json()) as {
+    requires_main_chat?: boolean;
+    reason?: string;
+    chart_spec?: unknown;
+  };
+
+  if (data.requires_main_chat) {
+    return { requiresMainChat: true, reason: typeof data.reason === 'string' ? data.reason : '' };
+  }
+
+  return {
+    requiresMainChat: false,
+    chartSpec: isRecord(data.chart_spec) ? data.chart_spec : {},
+  };
 }
 
 /**
@@ -164,6 +227,7 @@ function normalizeCitation(citation: BackendCitation): Citation {
 }
 
 function normalizeArtifact(artifact: BackendArtifact): ChatArtifact {
+  const isDynamic = artifact.artifact_type === 'dynamic_chart';
   return {
     artifactId: artifact.artifact_id ?? crypto.randomUUID(),
     artifactType: artifact.artifact_type ?? 'text',
@@ -178,12 +242,19 @@ function normalizeArtifact(artifact: BackendArtifact): ChatArtifact {
       : undefined,
     summary: artifact.summary,
     data: artifact.data ? artifact.data.map(normalizeRow) : undefined,
-    chartSpec: artifact.chart_spec ? normalizeChartSpec(artifact.chart_spec) : undefined,
+    chartSpec:
+      !isDynamic && artifact.chart_spec ? normalizeChartSpec(artifact.chart_spec) : undefined,
+    dynamicChartSpec: isDynamic && isRecord(artifact.chart_spec) ? artifact.chart_spec : undefined,
+    labels: artifact.labels ?? undefined,
     actions: artifact.actions ? artifact.actions.map(normalizeActionItem) : undefined,
     citations: artifact.citations ? artifact.citations.map(normalizeCitation) : undefined,
     warnings: (artifact.warnings ?? []).filter(isNonEmptyString),
     traceId: artifact.trace_id ?? null,
   };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function normalizeChartSpec(spec: BackendChartSpec): ChartSpec {

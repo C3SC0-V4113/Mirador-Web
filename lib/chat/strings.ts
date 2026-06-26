@@ -101,6 +101,7 @@ export const chatStrings = {
     types: {
       line: 'Línea',
       bar: 'Barras',
+      stacked_bar: 'Barras apiladas',
       area: 'Área',
       pie: 'Torta',
     },

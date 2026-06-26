@@ -83,6 +83,33 @@ describe('toFrontendChatResponse', () => {
     expect(artifact.chart_spec).toBeUndefined();
   });
 
+  it('maps DYNAMIC_CHART specs and semantic labels without changing row keys', () => {
+    const result = toFrontendChatResponse({
+      message: 'Mapa de calor',
+      artifacts: [
+        {
+          id: 'dynamic-1',
+          type: 'DYNAMIC_CHART',
+          payload: {
+            rows: [{ period_month: '2026-01', mrr: 50000 }],
+            labels: { period_month: 'Mes', mrr: 'MRR' },
+          },
+          chart_spec: {
+            $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+            data: { values: [{ period_month: '2026-01', mrr: 50000 }] },
+            mark: 'rect',
+          },
+        },
+      ],
+    });
+
+    const [artifact] = result.artifacts ?? [];
+    expect(artifact.artifact_type).toBe('dynamic_chart');
+    expect(artifact.labels).toEqual({ period_month: 'Mes', mrr: 'MRR' });
+    expect(artifact.data?.[0]).toHaveProperty('period_month');
+    expect(artifact.chart_spec).toMatchObject({ mark: 'rect' });
+  });
+
   it('maps a TEXT clarification artifact without rows or chart', () => {
     const result = toFrontendChatResponse({
       message: 'Precisá la métrica',

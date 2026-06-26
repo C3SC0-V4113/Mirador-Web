@@ -51,8 +51,13 @@ describe('useChatController', () => {
 
     const { messages, isSubmitting, activeConversationId } = useChatStore.getState();
     expect(sendChatMessageMock).toHaveBeenCalledWith(
-      { content: '¿Cómo va el MRR?', intentMode: 'responder', conversationId: undefined },
-      expect.any(AbortSignal)
+      {
+        content: '¿Cómo va el MRR?',
+        intentMode: 'responder',
+        conversationId: undefined,
+        dynamicChartsEnabled: false,
+      },
+      expect.anything()
     );
     // The returned conversation id is threaded for the next turn.
     expect(activeConversationId).toBe('conv-1');

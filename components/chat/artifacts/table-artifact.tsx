@@ -17,10 +17,12 @@ function formatCell(value: ArtifactRow[string]): string {
   return typeof value === 'number' ? value.toLocaleString() : value;
 }
 
-function rowKey(row: ArtifactRow): string {
-  return Object.values(row)
+function rowKey(row: ArtifactRow, index: number): string {
+  const valueKey = Object.values(row)
     .map((value) => String(value))
     .join('|');
+
+  return `${valueKey}|${index}`;
 }
 
 /** Accessible data table from `data[]` rows (DESIGN.md: tables for records). */
@@ -38,13 +40,13 @@ export function TableArtifact({ artifact }: { artifact: ChatArtifact }) {
       <TableHeader>
         <TableRow>
           {columns.map((column) => (
-            <TableHead key={column}>{column}</TableHead>
+            <TableHead key={column}>{artifact.labels?.[column] ?? column}</TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rows.map((row) => (
-          <TableRow key={rowKey(row)}>
+        {rows.map((row, index) => (
+          <TableRow key={rowKey(row, index)}>
             {columns.map((column) => (
               <TableCell key={column}>{formatCell(row[column])}</TableCell>
             ))}

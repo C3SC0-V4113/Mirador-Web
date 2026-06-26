@@ -56,7 +56,8 @@ Request:
   "conversation_id": "conversation_uuid",
   "content": "Analiza la caida de MRR e incluye una grafica",
   "intent_mode": "analizar",
-  "context_artifact_id": "artifact_uuid"
+  "context_artifact_id": "artifact_uuid",
+  "dynamic_charts_enabled": false
 }
 ```
 
@@ -64,6 +65,8 @@ Request:
   base priority of the answer; it is **not** a filter — explicit requirements written in `content`
   are honored as well.
 - `context_artifact_id` is optional; it links the message to a prior artifact for follow-ups.
+- `dynamic_charts_enabled` defaults to `false`, comes from a browser-local
+  preference, and is forwarded only to the public chat endpoint.
 
 Response:
 
@@ -126,15 +129,19 @@ Each entry in `artifacts` extends the response with:
 
 Allowed `artifact_type` values (MVP):
 
-| Value         | Frontend renders as                                                      |
-| ------------- | ------------------------------------------------------------------------ |
-| `text`        | Narrative block.                                                         |
-| `table`       | Data table (for detailed records).                                       |
-| `kpi`         | KPI card / metric callout.                                               |
-| `chart`       | Chart rendered from `chart_spec`; supports the inline mini-chart editor. |
-| `report`      | Composite on-demand report (narrative + chart/table).                    |
-| `action_plan` | Structured list of actions/risks/next steps.                             |
-| `knowledge`   | Document-grounded narrative accompanied by `citations`.                  |
+| Value           | Frontend renders as                                                      |
+| --------------- | ------------------------------------------------------------------------ |
+| `text`          | Narrative block.                                                         |
+| `table`         | Data table (for detailed records).                                       |
+| `kpi`           | KPI card / metric callout.                                               |
+| `chart`         | Chart rendered from `chart_spec`; supports the inline mini-chart editor. |
+| `dynamic_chart` | Governed Vega-Lite v6 chart; historical artifacts always render.         |
+| `report`        | Composite on-demand report (narrative + chart/table).                    |
+| `action_plan`   | Structured list of actions/risks/next steps.                             |
+| `knowledge`     | Document-grounded narrative accompanied by `citations`.                  |
+
+`payload.labels` maps raw field keys to readable business labels. Tables and
+both chart renderers use those labels without renaming the underlying row keys.
 
 ### `POST /api/chat/artifacts/:artifact_id/chart-edits`
 

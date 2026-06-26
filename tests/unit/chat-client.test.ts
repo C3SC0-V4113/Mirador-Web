@@ -78,4 +78,43 @@ describe('sendChatMessage artifact normalization', () => {
     const result = await sendChatMessage({ content: 'x', intentMode: 'responder' });
     expect(result.artifacts).toEqual([]);
   });
+
+  it('keeps a dynamic Vega-Lite spec separate from the Recharts chart contract', async () => {
+    mockBackend({
+      answer: 'Mapa de calor',
+      artifacts: [
+        {
+          artifact_id: 'dynamic-1',
+          artifact_type: 'dynamic_chart',
+          chart_spec: {
+            $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+            data: { values: [{ month: 'Ene', mrr: 1 }] },
+            mark: 'rect',
+          },
+          data: [{ month: 'Ene', mrr: 1 }],
+          labels: { month: 'Mes', mrr: 'MRR' },
+        },
+      ],
+    });
+
+    const result = await sendChatMessage({
+      content: 'heatmap',
+      intentMode: 'analizar',
+      dynamicChartsEnabled: true,
+    });
+
+    expect(result.artifacts[0].chartSpec).toBeUndefined();
+    expect(result.artifacts[0].dynamicChartSpec).toMatchObject({ mark: 'rect' });
+    expect(result.artifacts[0].labels).toEqual({ month: 'Mes', mrr: 'MRR' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/chat/messages',
+      expect.objectContaining({
+        body: JSON.stringify({
+          content: 'heatmap',
+          intentMode: 'analizar',
+          dynamicChartsEnabled: true,
+        }),
+      })
+    );
+  });
 });

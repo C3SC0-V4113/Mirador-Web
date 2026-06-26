@@ -16,6 +16,7 @@ interface IncomingBody {
   content?: unknown;
   intentMode?: unknown;
   conversationId?: unknown;
+  dynamicChartsEnabled?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
 
   const intentMode = typeof body.intentMode === 'string' ? body.intentMode : 'responder';
   const conversationId = typeof body.conversationId === 'string' ? body.conversationId : undefined;
+  const dynamicChartsEnabled = body.dynamicChartsEnabled === true;
 
   const apiUrl = process.env.MIRADOR_API_URL;
 
@@ -56,6 +58,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           message: content,
           intent_mode: intentMode,
+          dynamic_charts_enabled: dynamicChartsEnabled,
           ...(conversationId ? { conversation_id: conversationId } : {}),
         }),
       });

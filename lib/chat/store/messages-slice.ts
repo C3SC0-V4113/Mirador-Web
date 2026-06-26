@@ -5,6 +5,7 @@ import type {
   Citation,
   ChatRetryRequest,
   ChatUiMessage,
+  DynamicChartSpec,
 } from '@/lib/chat/types';
 import type { StateCreator } from 'zustand';
 
@@ -29,6 +30,10 @@ export interface MessagesSlice {
   }) => void;
   interruptedAssistant: (input: { assistantMessageId: string; retryPrompt: string }) => void;
   updateArtifactChartSpec: (input: { artifactId: string; chartSpec: ChartSpec }) => void;
+  updateArtifactDynamicChartSpec: (input: {
+    artifactId: string;
+    chartSpec: DynamicChartSpec;
+  }) => void;
   removeMessage: (messageId: string) => void;
   appendError: (input: { message: string; retryPrompt?: string }) => void;
   removeErrors: () => void;
@@ -115,6 +120,28 @@ export const createMessagesSlice: StateCreator<ChatStore, [], [], MessagesSlice>
               ...message,
               artifacts: message.artifacts.map((artifact) =>
                 artifact.artifactId === artifactId ? { ...artifact, chartSpec } : artifact
+              ),
+            }
+          : message
+      ),
+    })),
+
+  updateArtifactDynamicChartSpec: ({ artifactId, chartSpec }) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.kind === 'message' &&
+        message.artifacts?.some((artifact) => artifact.artifactId === artifactId)
+          ? {
+              ...message,
+              artifacts: message.artifacts.map((artifact) =>
+                artifact.artifactId === artifactId
+                  ? {
+                      ...artifact,
+                      artifactType: 'dynamic_chart',
+                      chartSpec: undefined,
+                      dynamicChartSpec: chartSpec,
+                    }
+                  : artifact
               ),
             }
           : message

@@ -1,5 +1,6 @@
 import { ActionPlanArtifact } from '@/components/chat/artifacts/action-plan-artifact';
 import { ChartArtifact } from '@/components/chat/artifacts/chart-artifact';
+import { DynamicChartArtifact } from '@/components/chat/artifacts/dynamic-chart-artifact';
 import { FallbackArtifact } from '@/components/chat/artifacts/fallback-artifact';
 import { KnowledgeArtifact } from '@/components/chat/artifacts/knowledge-artifact';
 import { KpiArtifact } from '@/components/chat/artifacts/kpi-artifact';
@@ -20,6 +21,8 @@ export function ArtifactBody({ artifact }: { artifact: ChatArtifact }) {
       return <TableArtifact artifact={artifact} />;
     case 'chart':
       return <ChartArtifact artifact={artifact} />;
+    case 'dynamic_chart':
+      return <DynamicChartArtifact artifact={artifact} />;
     case 'report':
       return <ReportArtifact artifact={artifact} />;
     case 'action_plan':

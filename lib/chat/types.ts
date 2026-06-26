@@ -40,14 +40,21 @@ export type ChatArtifactType =
   | 'table'
   | 'kpi'
   | 'chart'
+  | 'dynamic_chart'
   | 'report'
   | 'action_plan'
   | 'knowledge';
 
 /** Chart kinds rendered with the shadcn chart (Recharts). */
-export type ChartType = 'line' | 'bar' | 'area' | 'pie';
+export type ChartType = 'line' | 'bar' | 'stacked_bar' | 'area' | 'pie';
 
-export const CHART_TYPES: readonly ChartType[] = ['line', 'bar', 'area', 'pie'] as const;
+export const CHART_TYPES: readonly ChartType[] = [
+  'line',
+  'bar',
+  'stacked_bar',
+  'area',
+  'pie',
+] as const;
 
 /** One chart series — a value key present in each data row. */
 export interface ChartSeries {
@@ -65,6 +72,8 @@ export interface ChartSpec {
   format?: string;
   labels?: Record<string, string>;
 }
+
+export type DynamicChartSpec = Record<string, unknown>;
 
 /** Per-artifact recency signal. */
 export interface ArtifactFreshness {
@@ -97,6 +106,8 @@ export interface ChatArtifact {
   summary?: string;
   data?: ArtifactRow[];
   chartSpec?: ChartSpec;
+  dynamicChartSpec?: DynamicChartSpec;
+  labels?: Record<string, string>;
   actions?: ActionPlanItem[];
   citations?: Citation[];
   warnings?: string[];
@@ -151,6 +162,7 @@ export interface ChatMessageRequest {
   intentMode: ChatIntentMode;
   conversationId?: string;
   contextArtifactId?: string;
+  dynamicChartsEnabled?: boolean;
 }
 
 /** Normalized response the UI consumes (mapped from the backend contract). */
@@ -207,6 +219,7 @@ export interface BackendArtifact {
   summary?: string;
   data?: Record<string, unknown>[] | null;
   chart_spec?: BackendChartSpec | null;
+  labels?: Record<string, string> | null;
   actions?: BackendActionItem[] | null;
   citations?: BackendCitation[] | null;
   warnings?: string[] | null;

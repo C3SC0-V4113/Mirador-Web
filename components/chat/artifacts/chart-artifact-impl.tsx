@@ -78,7 +78,17 @@ function buildChartElement(spec: ChartSpec, data: ChartRow[], series: ChartSerie
   const axis = (
     <>
       <CartesianGrid vertical={false} />
-      <XAxis dataKey={spec.x} tickLine={false} axisLine={false} tickMargin={8} />
+      <XAxis
+        dataKey={spec.x}
+        tickLine={false}
+        axisLine={false}
+        tickMargin={8}
+        label={{
+          value: spec.labels?.[spec.x] ?? spec.x,
+          position: 'insideBottom',
+          offset: -4,
+        }}
+      />
       <ChartTooltip content={<ChartTooltipContent />} />
       {showLegend ? <ChartLegend content={<ChartLegendContent />} /> : null}
     </>
@@ -137,7 +147,13 @@ function buildChartElement(spec: ChartSpec, data: ChartRow[], series: ChartSerie
     <BarChart accessibilityLayer data={data}>
       {axis}
       {series.map((item) => (
-        <Bar key={item.key} dataKey={item.key} fill={`var(--color-${item.key})`} radius={4} />
+        <Bar
+          key={item.key}
+          dataKey={item.key}
+          fill={`var(--color-${item.key})`}
+          radius={4}
+          stackId={spec.type === 'stacked_bar' ? 'stack' : undefined}
+        />
       ))}
     </BarChart>
   );

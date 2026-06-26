@@ -16,6 +16,7 @@ that parent ADR for provenance.
 | [0005](0005-define-chat-artifact-rendering-strategy.md)         | Define the chat artifact rendering strategy                                  | Proposed | 2026-06-08 |
 | [0006](0006-deploy-on-cloudflare-workers-with-opennext.md)      | Deploy on Cloudflare Workers via OpenNext                                    | Proposed | 2026-06-08 |
 | [0007](0007-adopt-authjs-credentials-jwt-and-next-proxy.md)     | Adopt Auth.js (NextAuth v5) with Credentials + JWT session and Next.js Proxy | Accepted | 2026-06-09 |
+| [0008](0008-render-governed-dynamic-charts-with-vega-lite.md)   | Render governed dynamic charts with Vega-Lite                                | Accepted | 2026-06-25 |
 
 ## Creating a New ADR
 

@@ -80,9 +80,17 @@ function mapArtifact(artifact: CoreArtifact, sourceViews?: string[]): BackendArt
     summary: typeof artifact.summary === 'string' ? artifact.summary : undefined,
     source_views: sourceViews,
     data: payload ? asRows(payload.rows) : undefined,
+    labels: payload && isRecord(payload.labels) ? asStringRecord(payload.labels) : undefined,
     actions: payload ? mapActions(payload.actions) : undefined,
     chart_spec: isRecord(artifact.chart_spec) ? artifact.chart_spec : undefined,
   };
+}
+
+function asStringRecord(value: Record<string, unknown>): Record<string, string> | undefined {
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string'
+  );
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
 }
 
 function mapActions(actions: unknown): BackendArtifact['actions'] {

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ArtifactRenderer } from '@/components/chat/artifacts/artifact-renderer';
 import { ChatRuntimeProvider } from '@/components/chat/chat-runtime-provider';
+import { useDynamicChartsPreference } from '@/lib/chat/dynamic-charts-preference';
 import { chatStrings } from '@/lib/chat/strings';
 
 import type { ChatArtifact } from '@/lib/chat/types';
@@ -31,6 +32,47 @@ describe('ArtifactRenderer', () => {
     expect(screen.getByRole('cell', { name: 'Ene' })).toBeDefined();
     // 2000 is rendered via toLocaleString.
     expect(screen.getByText((2000).toLocaleString())).toBeDefined();
+  });
+
+  it('renders semantic labels as table headers while preserving raw row keys', () => {
+    render(
+      <ArtifactRenderer
+        artifact={base({
+          artifactType: 'table',
+          data: [{ period_month: '2026-01', total_expenses: 1000 }],
+          labels: { period_month: 'Mes', total_expenses: 'Gastos totales' },
+        })}
+      />
+    );
+
+    expect(screen.getByRole('columnheader', { name: 'Mes' })).toBeDefined();
+    expect(screen.getByRole('columnheader', { name: 'Gastos totales' })).toBeDefined();
+  });
+
+  it('renders historical dynamic artifacts with editing disabled when preference is off', () => {
+    useDynamicChartsPreference.setState({ enabled: false });
+
+    render(
+      <ArtifactRenderer
+        artifact={base({
+          artifactType: 'dynamic_chart',
+          dynamicChartSpec: {
+            $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+            data: { values: [{ month: 'Ene', mrr: 1 }] },
+            mark: 'point',
+          },
+          data: [{ month: 'Ene', mrr: 1 }],
+        })}
+      />
+    );
+
+    expect(
+      screen.getByText('La gráfica histórica sigue visible; activa la preferencia para editarla.')
+    ).toBeDefined();
+    expect(screen.getByLabelText('Pedir un cambio a la gráfica dinámica')).toHaveProperty(
+      'disabled',
+      true
+    );
   });
 
   it('renders a KPI value from the first numeric field', () => {
@@ -63,5 +105,6 @@ describe('ArtifactRenderer', () => {
 
     expect(screen.getByText('Evolución del MRR')).toBeDefined();
     expect(screen.getByText(chatStrings.artifacts.freshness.fresh)).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Barras apiladas' })).toBeDefined();
   });
 });

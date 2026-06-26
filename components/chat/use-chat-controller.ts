@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
 import { sendChatMessage } from '@/lib/chat/chat-client';
+import { useDynamicChartsPreference } from '@/lib/chat/dynamic-charts-preference';
 import { useChatStore } from '@/lib/chat/store';
 import { chatStrings } from '@/lib/chat/strings';
 
@@ -58,7 +59,12 @@ export function useChatController() {
 
     try {
       const response = await sendChatMessage(
-        { content: trimmed, intentMode, conversationId: previousConversationId ?? undefined },
+        {
+          content: trimmed,
+          intentMode,
+          conversationId: previousConversationId ?? undefined,
+          dynamicChartsEnabled: useDynamicChartsPreference.getState().enabled,
+        },
         controller.signal
       );
 

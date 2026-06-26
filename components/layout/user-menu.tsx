@@ -8,12 +8,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuCheckboxItem,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useDynamicChartsPreference } from '@/lib/chat/dynamic-charts-preference';
 
 interface UserMenuProps {
   email: string;
@@ -33,6 +35,8 @@ async function handleSignOut() {
 
 export function UserMenu({ email, role }: UserMenuProps) {
   const initial = email.charAt(0).toUpperCase() || 'U';
+  const dynamicChartsEnabled = useDynamicChartsPreference((state) => state.enabled);
+  const setDynamicChartsEnabled = useDynamicChartsPreference((state) => state.setEnabled);
 
   return (
     <DropdownMenu>
@@ -58,6 +62,17 @@ export function UserMenu({ email, role }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <ThemeMenuItems />
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuCheckboxItem
+            checked={dynamicChartsEnabled}
+            onCheckedChange={(checked) => {
+              setDynamicChartsEnabled(checked);
+            }}
+          >
+            Gráficas dinámicas
+          </DropdownMenuCheckboxItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

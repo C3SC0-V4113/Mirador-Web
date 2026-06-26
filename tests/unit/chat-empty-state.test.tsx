@@ -66,8 +66,13 @@ describe('ChatEmptyState', () => {
 
     await waitFor(() => {
       expect(sendChatMessageMock).toHaveBeenCalledWith(
-        { content: firstSuggestion, intentMode: 'responder' },
-        expect.any(AbortSignal)
+        {
+          content: firstSuggestion,
+          intentMode: 'responder',
+          conversationId: undefined,
+          dynamicChartsEnabled: false,
+        },
+        expect.anything()
       );
     });
   });
