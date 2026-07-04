@@ -141,6 +141,12 @@ CSP `sha256` meta injected); `sandbox_metadata.external_resources` and
 transparency. The frontend renders `sandbox_html` in a sandboxed iframe — see
 ADR-0009 — and does not re-sanitize it client-side.
 
+A `sandbox_dashboard` artifact's `payload` may additionally carry `datasets`
+(an object of named row arrays, one key per governed metric, backend ADR-0015)
+when the dashboard combines up to 3 metrics. The frontend does not read it:
+`data` keeps reflecting the PRIMARY metric rows, and the multi-metric data
+lives only inside the sanitized `sandbox_html` (server-injected `DATA` object).
+
 Allowed `artifact_type` values (MVP):
 
 | Value               | Frontend renders as                                                                                       |
