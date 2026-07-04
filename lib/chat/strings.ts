@@ -75,6 +75,14 @@ export const chatStrings = {
     fallbackNotice: 'Este tipo de artefacto aún no se puede mostrar.',
     chartAltPrefix: 'Gráfico',
     emptyData: 'Sin datos para mostrar.',
+    sandboxDashboard: {
+      title: 'Panel interactivo',
+      warning:
+        'Panel interactivo generado por IA en un entorno aislado. Puede contener errores visuales o de cálculo; verifica las cifras contra los datos de origen.',
+      unsafeError: 'No se pudo mostrar el panel de forma segura.',
+      expandLabel: 'Ampliar panel',
+      expandedDescription: 'Vista ampliada del panel interactivo en un entorno aislado.',
+    },
     kpiNoValue: '—',
     citationsTitle: 'Fuentes',
     actionKinds: {
@@ -115,5 +123,15 @@ export const chatStrings = {
     requestFailed: 'No se pudo completar la solicitud. Inténtalo de nuevo.',
     noResponse: 'El servidor no devolvió una respuesta.',
     copyFailed: 'No se pudo copiar el mensaje.',
+  },
+  userMenu: {
+    sandboxDashboardsToggle: 'Paneles interactivos (beta con riesgos)',
+  },
+  sandboxDashboardsDialog: {
+    title: 'Activar paneles interactivos',
+    description:
+      'Los paneles HTML se generan con IA y se ejecutan en un entorno aislado (sandbox) dentro de tu navegador. Las cifras pueden contener errores: verifícalas siempre contra los datos de origen. Esta función es experimental.',
+    confirm: 'Activar',
+    cancel: 'Cancelar',
   },
 } as const;

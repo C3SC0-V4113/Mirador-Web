@@ -36,23 +36,30 @@ export function TableArtifact({ artifact }: { artifact: ChatArtifact }) {
   const columns = Object.keys(rows[0]);
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          {columns.map((column) => (
-            <TableHead key={column}>{artifact.labels?.[column] ?? column}</TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((row, index) => (
-          <TableRow key={rowKey(row, index)}>
+    // Plain overflow div instead of the Base UI ScrollArea: its Viewport uses a
+    // percentage height (`size-full`) that never resolves against a
+    // max-height-only parent, so the content would not scroll internally. The
+    // inner shadcn table-container's own overflow is neutralized so this
+    // wrapper is the single scroll container and the sticky header tracks it.
+    <div className="max-h-96 overflow-auto rounded-md [&_[data-slot=table-container]]:overflow-visible">
+      <Table className="[&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-card">
+        <TableHeader>
+          <TableRow>
             {columns.map((column) => (
-              <TableCell key={column}>{formatCell(row[column])}</TableCell>
+              <TableHead key={column}>{artifact.labels?.[column] ?? column}</TableHead>
             ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row, index) => (
+            <TableRow key={rowKey(row, index)}>
+              {columns.map((column) => (
+                <TableCell key={column}>{formatCell(row[column])}</TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

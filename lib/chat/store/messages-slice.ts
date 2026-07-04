@@ -34,6 +34,7 @@ export interface MessagesSlice {
     artifactId: string;
     chartSpec: DynamicChartSpec;
   }) => void;
+  updateArtifactSandboxHtml: (input: { artifactId: string; sandboxHtml: string }) => void;
   removeMessage: (messageId: string) => void;
   appendError: (input: { message: string; retryPrompt?: string }) => void;
   removeErrors: () => void;
@@ -140,6 +141,27 @@ export const createMessagesSlice: StateCreator<ChatStore, [], [], MessagesSlice>
                       artifactType: 'dynamic_chart',
                       chartSpec: undefined,
                       dynamicChartSpec: chartSpec,
+                    }
+                  : artifact
+              ),
+            }
+          : message
+      ),
+    })),
+
+  updateArtifactSandboxHtml: ({ artifactId, sandboxHtml }) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.kind === 'message' &&
+        message.artifacts?.some((artifact) => artifact.artifactId === artifactId)
+          ? {
+              ...message,
+              artifacts: message.artifacts.map((artifact) =>
+                artifact.artifactId === artifactId
+                  ? {
+                      ...artifact,
+                      artifactType: 'sandbox_dashboard',
+                      sandboxHtml,
                     }
                   : artifact
               ),

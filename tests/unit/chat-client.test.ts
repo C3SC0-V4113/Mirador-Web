@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { sendChatMessage } from '@/lib/chat/chat-client';
+import { editSandboxDashboardVisualization, sendChatMessage } from '@/lib/chat/chat-client';
 
 import type { BackendChatResponse } from '@/lib/chat/types';
 
@@ -116,5 +116,80 @@ describe('sendChatMessage artifact normalization', () => {
         }),
       })
     );
+  });
+
+  it('sends sandboxDashboardsEnabled:true in the request body', async () => {
+    mockBackend({ answer: 'ok', artifacts: [] });
+
+    await sendChatMessage({
+      content: 'dame un panel',
+      intentMode: 'reporte_visual',
+      sandboxDashboardsEnabled: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/chat/messages',
+      expect.objectContaining({
+        body: JSON.stringify({
+          content: 'dame un panel',
+          intentMode: 'reporte_visual',
+          sandboxDashboardsEnabled: true,
+        }),
+      })
+    );
+  });
+
+  it('threads the caller-provided flag into sandbox edit requests', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ requires_main_chat: false, sandbox_html: '<html></html>' }),
+    } as Response);
+
+    await editSandboxDashboardVisualization('artifact-1', 'agrega un panel', true);
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/chat/artifacts/artifact-1/visualization',
+      expect.objectContaining({
+        body: JSON.stringify({ message: 'agrega un panel', sandbox_dashboards_enabled: true }),
+      })
+    );
+
+    await editSandboxDashboardVisualization('artifact-1', 'agrega un panel', false);
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/chat/artifacts/artifact-1/visualization',
+      expect.objectContaining({
+        body: JSON.stringify({ message: 'agrega un panel', sandbox_dashboards_enabled: false }),
+      })
+    );
+  });
+
+  it('maps a sandbox_dashboard artifact to camelCase and leaves chartSpec/dynamicChartSpec undefined', async () => {
+    mockBackend({
+      answer: 'Panel',
+      artifacts: [
+        {
+          artifact_id: 'sandbox-1',
+          artifact_type: 'sandbox_dashboard',
+          question: 'Panel de ventas',
+          sandbox_html: '<html><body><p>hola</p></body></html>',
+          sandbox_metadata: {
+            external_resources: [],
+            blocked_items: ['<script src="https://evil.example.com/x.js">'],
+          },
+          trace_id: 't2',
+        },
+      ],
+    });
+
+    const result = await sendChatMessage({ content: 'panel', intentMode: 'reporte_visual' });
+
+    expect(result.artifacts).toHaveLength(1);
+    const [artifact] = result.artifacts;
+    expect(artifact.sandboxHtml).toBe('<html><body><p>hola</p></body></html>');
+    expect(artifact.sandboxMetadata).toEqual({
+      externalResources: [],
+      blockedItems: ['<script src="https://evil.example.com/x.js">'],
+    });
+    expect(artifact.chartSpec).toBeUndefined();
+    expect(artifact.dynamicChartSpec).toBeUndefined();
   });
 });

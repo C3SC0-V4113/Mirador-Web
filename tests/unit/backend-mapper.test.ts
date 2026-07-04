@@ -126,6 +126,32 @@ describe('toFrontendChatResponse', () => {
     expect(result.warnings).toEqual(['metric_not_resolved']);
   });
 
+  it('maps a SANDBOX_DASHBOARD artifact: sandbox_html and sandbox_metadata pass through', () => {
+    const result = toFrontendChatResponse({
+      message: 'Panel',
+      artifacts: [
+        {
+          id: 'sandbox-1',
+          type: 'SANDBOX_DASHBOARD',
+          summary: 'Panel de ventas',
+          sandbox_html: '<html><body><p>hola</p></body></html>',
+          sandbox_metadata: {
+            external_resources: ['https://cdn.example.com/chart.js'],
+            blocked_items: ['<iframe src="https://evil.example.com">'],
+          },
+        },
+      ],
+    });
+
+    const [artifact] = result.artifacts ?? [];
+    expect(artifact.artifact_type).toBe('sandbox_dashboard');
+    expect(artifact.sandbox_html).toBe('<html><body><p>hola</p></body></html>');
+    expect(artifact.sandbox_metadata).toEqual({
+      external_resources: ['https://cdn.example.com/chart.js'],
+      blocked_items: ['<iframe src="https://evil.example.com">'],
+    });
+  });
+
   it('is defensive against malformed input', () => {
     expect(toFrontendChatResponse(null)).toMatchObject({ answer: '', artifacts: [] });
     expect(toFrontendChatResponse({ artifacts: 'nope' })).toMatchObject({ artifacts: [] });

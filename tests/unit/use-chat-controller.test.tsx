@@ -56,6 +56,7 @@ describe('useChatController', () => {
         intentMode: 'responder',
         conversationId: undefined,
         dynamicChartsEnabled: false,
+        sandboxDashboardsEnabled: false,
       },
       expect.anything()
     );

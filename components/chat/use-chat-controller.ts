@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 
 import { sendChatMessage } from '@/lib/chat/chat-client';
 import { useDynamicChartsPreference } from '@/lib/chat/dynamic-charts-preference';
+import { useSandboxDashboardsPreference } from '@/lib/chat/sandbox-dashboards-preference';
 import { useChatStore } from '@/lib/chat/store';
 import { chatStrings } from '@/lib/chat/strings';
 
@@ -64,6 +65,7 @@ export function useChatController() {
           intentMode,
           conversationId: previousConversationId ?? undefined,
           dynamicChartsEnabled: useDynamicChartsPreference.getState().enabled,
+          sandboxDashboardsEnabled: useSandboxDashboardsPreference.getState().enabled,
         },
         controller.signal
       );

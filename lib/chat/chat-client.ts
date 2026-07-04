@@ -156,6 +156,51 @@ export async function editDynamicChartVisualization(
   };
 }
 
+export type SandboxDashboardVisualizationResult =
+  | { requiresMainChat: true; reason: string }
+  | { requiresMainChat: false; sandboxHtml: string };
+
+/**
+ * Edits a sandbox dashboard artifact via the BFF. Natural-language only (no
+ * structured mode); may redirect to the main chat when the request needs new
+ * data.
+ */
+export async function editSandboxDashboardVisualization(
+  artifactId: string,
+  message: string,
+  sandboxDashboardsEnabled: boolean,
+  signal?: AbortSignal
+): Promise<SandboxDashboardVisualizationResult> {
+  const response = await fetch(
+    `/api/chat/artifacts/${encodeURIComponent(artifactId)}/visualization`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, sandbox_dashboards_enabled: sandboxDashboardsEnabled }),
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+
+  const data = (await response.json()) as {
+    requires_main_chat?: boolean;
+    reason?: string;
+    sandbox_html?: unknown;
+  };
+
+  if (data.requires_main_chat) {
+    return { requiresMainChat: true, reason: typeof data.reason === 'string' ? data.reason : '' };
+  }
+
+  return {
+    requiresMainChat: false,
+    sandboxHtml: typeof data.sandbox_html === 'string' ? data.sandbox_html : '',
+  };
+}
+
 /**
  * Maps the backend conversation list payload into typed summaries. Pure — used
  * by the server-side data loader (`lib/server/conversations.ts`).
@@ -228,6 +273,9 @@ function normalizeCitation(citation: BackendCitation): Citation {
 
 function normalizeArtifact(artifact: BackendArtifact): ChatArtifact {
   const isDynamic = artifact.artifact_type === 'dynamic_chart';
+  // `sandbox_dashboard` artifacts never carry a Recharts or Vega-Lite spec —
+  // guarantee both stay undefined regardless of what the backend sends.
+  const isSandbox = artifact.artifact_type === 'sandbox_dashboard';
   return {
     artifactId: artifact.artifact_id ?? crypto.randomUUID(),
     artifactType: artifact.artifact_type ?? 'text',
@@ -243,8 +291,20 @@ function normalizeArtifact(artifact: BackendArtifact): ChatArtifact {
     summary: artifact.summary,
     data: artifact.data ? artifact.data.map(normalizeRow) : undefined,
     chartSpec:
-      !isDynamic && artifact.chart_spec ? normalizeChartSpec(artifact.chart_spec) : undefined,
-    dynamicChartSpec: isDynamic && isRecord(artifact.chart_spec) ? artifact.chart_spec : undefined,
+      !isDynamic && !isSandbox && artifact.chart_spec
+        ? normalizeChartSpec(artifact.chart_spec)
+        : undefined,
+    dynamicChartSpec:
+      isDynamic && !isSandbox && isRecord(artifact.chart_spec) ? artifact.chart_spec : undefined,
+    sandboxHtml:
+      isSandbox && typeof artifact.sandbox_html === 'string' ? artifact.sandbox_html : undefined,
+    sandboxMetadata:
+      isSandbox && artifact.sandbox_metadata
+        ? {
+            externalResources: artifact.sandbox_metadata.external_resources ?? [],
+            blockedItems: artifact.sandbox_metadata.blocked_items ?? [],
+          }
+        : undefined,
     labels: artifact.labels ?? undefined,
     actions: artifact.actions ? artifact.actions.map(normalizeActionItem) : undefined,
     citations: artifact.citations ? artifact.citations.map(normalizeCitation) : undefined,

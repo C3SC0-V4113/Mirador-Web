@@ -41,6 +41,7 @@ export type ChatArtifactType =
   | 'kpi'
   | 'chart'
   | 'dynamic_chart'
+  | 'sandbox_dashboard'
   | 'report'
   | 'action_plan'
   | 'knowledge';
@@ -75,6 +76,12 @@ export interface ChartSpec {
 
 export type DynamicChartSpec = Record<string, unknown>;
 
+/** Metadata about the backend's server-side HTML sanitization pass. */
+export interface SandboxMetadata {
+  externalResources: string[];
+  blockedItems: string[];
+}
+
 /** Per-artifact recency signal. */
 export interface ArtifactFreshness {
   generatedAt?: string;
@@ -107,6 +114,8 @@ export interface ChatArtifact {
   data?: ArtifactRow[];
   chartSpec?: ChartSpec;
   dynamicChartSpec?: DynamicChartSpec;
+  sandboxHtml?: string;
+  sandboxMetadata?: SandboxMetadata;
   labels?: Record<string, string>;
   actions?: ActionPlanItem[];
   citations?: Citation[];
@@ -163,6 +172,7 @@ export interface ChatMessageRequest {
   conversationId?: string;
   contextArtifactId?: string;
   dynamicChartsEnabled?: boolean;
+  sandboxDashboardsEnabled?: boolean;
 }
 
 /** Normalized response the UI consumes (mapped from the backend contract). */
@@ -209,6 +219,11 @@ export interface BackendActionItem {
   kind?: string;
 }
 
+export interface BackendSandboxMetadata {
+  external_resources?: string[] | null;
+  blocked_items?: string[] | null;
+}
+
 export interface BackendArtifact {
   artifact_id?: string;
   artifact_type?: string;
@@ -219,6 +234,8 @@ export interface BackendArtifact {
   summary?: string;
   data?: Record<string, unknown>[] | null;
   chart_spec?: BackendChartSpec | null;
+  sandbox_html?: string | null;
+  sandbox_metadata?: BackendSandboxMetadata | null;
   labels?: Record<string, string> | null;
   actions?: BackendActionItem[] | null;
   citations?: BackendCitation[] | null;

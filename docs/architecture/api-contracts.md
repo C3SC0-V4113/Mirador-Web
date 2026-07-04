@@ -57,7 +57,8 @@ Request:
   "content": "Analiza la caida de MRR e incluye una grafica",
   "intent_mode": "analizar",
   "context_artifact_id": "artifact_uuid",
-  "dynamic_charts_enabled": false
+  "dynamic_charts_enabled": false,
+  "sandbox_dashboards_enabled": false
 }
 ```
 
@@ -67,6 +68,10 @@ Request:
 - `context_artifact_id` is optional; it links the message to a prior artifact for follow-ups.
 - `dynamic_charts_enabled` defaults to `false`, comes from a browser-local
   preference, and is forwarded only to the public chat endpoint.
+- `sandbox_dashboards_enabled` defaults to `false`, comes from a separate
+  browser-local preference, and is forwarded only to the public chat endpoint.
+  Enabling it client-side requires the user to confirm a warning dialog first
+  (ADR-0009); disabling it does not.
 
 Response:
 
@@ -122,23 +127,33 @@ Each entry in `artifacts` extends the response with:
   "summary": "MRR crecio 8% en los ultimos 6 meses.",
   "data": [],
   "chart_spec": { "type": "line", "x": "month", "y": "mrr" },
+  "sandbox_html": "<html>...</html>",
+  "sandbox_metadata": { "external_resources": [], "blocked_items": [] },
   "warnings": [],
   "trace_id": "uuid"
 }
 ```
 
+`sandbox_html` and `sandbox_metadata` are populated only for `sandbox_dashboard`
+artifacts. `sandbox_html` is the backend-sanitized document (parse5 allowlist +
+CSP `sha256` meta injected); `sandbox_metadata.external_resources` and
+`.blocked_items` report what the sanitizer allowed or stripped, for
+transparency. The frontend renders `sandbox_html` in a sandboxed iframe — see
+ADR-0009 — and does not re-sanitize it client-side.
+
 Allowed `artifact_type` values (MVP):
 
-| Value           | Frontend renders as                                                      |
-| --------------- | ------------------------------------------------------------------------ |
-| `text`          | Narrative block.                                                         |
-| `table`         | Data table (for detailed records).                                       |
-| `kpi`           | KPI card / metric callout.                                               |
-| `chart`         | Chart rendered from `chart_spec`; supports the inline mini-chart editor. |
-| `dynamic_chart` | Governed Vega-Lite v6 chart; historical artifacts always render.         |
-| `report`        | Composite on-demand report (narrative + chart/table).                    |
-| `action_plan`   | Structured list of actions/risks/next steps.                             |
-| `knowledge`     | Document-grounded narrative accompanied by `citations`.                  |
+| Value               | Frontend renders as                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `text`              | Narrative block.                                                                                          |
+| `table`             | Data table (for detailed records).                                                                        |
+| `kpi`               | KPI card / metric callout.                                                                                |
+| `chart`             | Chart rendered from `chart_spec`; supports the inline mini-chart editor.                                  |
+| `dynamic_chart`     | Governed Vega-Lite v6 chart; historical artifacts always render.                                          |
+| `sandbox_dashboard` | Sanitized AI-generated HTML dashboard rendered in an isolated iframe; historical artifacts always render. |
+| `report`            | Composite on-demand report (narrative + chart/table).                                                     |
+| `action_plan`       | Structured list of actions/risks/next steps.                                                              |
+| `knowledge`         | Document-grounded narrative accompanied by `citations`.                                                   |
 
 `payload.labels` maps raw field keys to readable business labels. Tables and
 both chart renderers use those labels without renaming the underlying row keys.

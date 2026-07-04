@@ -26,6 +26,8 @@ interface CoreArtifact {
   summary?: unknown;
   payload?: unknown;
   chart_spec?: unknown;
+  sandbox_html?: unknown;
+  sandbox_metadata?: unknown;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -83,6 +85,19 @@ function mapArtifact(artifact: CoreArtifact, sourceViews?: string[]): BackendArt
     labels: payload && isRecord(payload.labels) ? asStringRecord(payload.labels) : undefined,
     actions: payload ? mapActions(payload.actions) : undefined,
     chart_spec: isRecord(artifact.chart_spec) ? artifact.chart_spec : undefined,
+    sandbox_html: typeof artifact.sandbox_html === 'string' ? artifact.sandbox_html : undefined,
+    sandbox_metadata: mapSandboxMetadata(artifact.sandbox_metadata),
+  };
+}
+
+function mapSandboxMetadata(value: unknown): BackendArtifact['sandbox_metadata'] {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  return {
+    external_resources: asStringArray(value.external_resources) ?? [],
+    blocked_items: asStringArray(value.blocked_items) ?? [],
   };
 }
 

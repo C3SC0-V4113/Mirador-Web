@@ -17,6 +17,7 @@ interface IncomingBody {
   intentMode?: unknown;
   conversationId?: unknown;
   dynamicChartsEnabled?: unknown;
+  sandboxDashboardsEnabled?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
   const intentMode = typeof body.intentMode === 'string' ? body.intentMode : 'responder';
   const conversationId = typeof body.conversationId === 'string' ? body.conversationId : undefined;
   const dynamicChartsEnabled = body.dynamicChartsEnabled === true;
+  const sandboxDashboardsEnabled = body.sandboxDashboardsEnabled === true;
 
   const apiUrl = process.env.MIRADOR_API_URL;
 
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
           message: content,
           intent_mode: intentMode,
           dynamic_charts_enabled: dynamicChartsEnabled,
+          sandbox_dashboards_enabled: sandboxDashboardsEnabled,
           ...(conversationId ? { conversation_id: conversationId } : {}),
         }),
       });
@@ -95,7 +98,7 @@ export async function POST(request: Request) {
       '¿Qué riesgos detectas en la operación actual?',
       'Dame un plan de acción para mejorar la retención.',
     ],
-    artifacts: buildStubArtifacts(intentMode),
+    artifacts: buildStubArtifacts(intentMode, sandboxDashboardsEnabled),
     warnings: ['Respuesta de demostración: el backend aún no está conectado.'],
     trace_id: crypto.randomUUID(),
   };
@@ -126,7 +129,10 @@ async function extractBackendError(response: Response): Promise<string> {
   return 'El servicio de chat no está disponible.';
 }
 
-function buildStubArtifacts(intentMode: string): BackendArtifact[] {
+function buildStubArtifacts(
+  intentMode: string,
+  sandboxDashboardsEnabled: boolean
+): BackendArtifact[] {
   const freshness = { generated_at: new Date().toISOString(), status: 'fresh' };
   const monthly = [
     { month: 'Ene', mrr: 42000, clientes: 120 },
@@ -198,6 +204,21 @@ function buildStubArtifacts(intentMode: string): BackendArtifact[] {
     });
   }
 
+  if (sandboxDashboardsEnabled) {
+    artifacts.push({
+      artifact_id: crypto.randomUUID(),
+      artifact_type: 'sandbox_dashboard',
+      question: 'Panel interactivo de demostración',
+      period: 'junio 2026',
+      freshness,
+      summary: 'Panel HTML aislado generado como demostración del flujo (sin backend real).',
+      sandbox_html: buildStubSandboxHtml(),
+      sandbox_metadata: { external_resources: [], blocked_items: [] },
+      warnings: ['Datos de demostración.'],
+      trace_id: crypto.randomUUID(),
+    });
+  }
+
   if (intentMode === 'analizar') {
     artifacts.push({
       artifact_id: crypto.randomUUID(),
@@ -218,6 +239,49 @@ function buildStubArtifacts(intentMode: string): BackendArtifact[] {
   }
 
   return artifacts;
+}
+
+/**
+ * Small, self-contained demo dashboard for the dev stub: two KPI blocks and a
+ * canvas bar chart drawn from an inline `const DATA` — no external resources,
+ * no forms, no `postMessage`. Mirrors what the real backend would send after
+ * server-side sanitization (parse5 allowlist + CSP sha256 meta), so this is
+ * only a fixture for the frontend flow, not a sanitization exercise.
+ */
+function buildStubSandboxHtml(): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; color: #1f2937; }
+  .kpis { display: flex; gap: 12px; margin-bottom: 16px; }
+  .kpi { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; }
+  .kpi h3 { margin: 0 0 4px; font-size: 12px; color: #6b7280; font-weight: 500; }
+  .kpi p { margin: 0; font-size: 20px; font-weight: 600; }
+  canvas { width: 100%; height: 220px; }
+</style>
+</head>
+<body>
+  <div class="kpis">
+    <div class="kpi"><h3>MRR</h3><p>USD 58.000</p></div>
+    <div class="kpi"><h3>Clientes activos</h3><p>158</p></div>
+  </div>
+  <canvas id="chart" width="600" height="220"></canvas>
+  <script>
+    const DATA = [42000, 45000, 47000, 51000, 54000, 58000];
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    const max = Math.max(...DATA);
+    const barWidth = canvas.width / DATA.length;
+    ctx.fillStyle = '#2563eb';
+    DATA.forEach((value, index) => {
+      const height = (value / max) * (canvas.height - 20);
+      ctx.fillRect(index * barWidth + 8, canvas.height - height, barWidth - 16, height);
+    });
+  </script>
+</body>
+</html>`;
 }
 
 function buildStubAnswer(content: string, intentMode: string): string {

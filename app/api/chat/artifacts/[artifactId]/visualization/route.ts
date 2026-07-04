@@ -2,9 +2,12 @@ import { auth } from '@/auth';
 import { backendAuthHeaders } from '@/lib/auth/backend-session';
 
 /**
- * BFF proxy for the chart mini-edit endpoint. Forwards the body verbatim — the
- * backend accepts either `{ message }` (natural language) or `{ chart_spec }`
- * (structured, no LLM) — with the session cookie (ADR-0003).
+ * BFF proxy for the visualization mini-edit endpoint. Forwards the body
+ * verbatim — the backend accepts `{ message }` (natural language) or
+ * `{ chart_spec }` (structured, no LLM) for charts, and
+ * `{ message, sandbox_dashboards_enabled }` for sandbox dashboards — with the
+ * session cookie (ADR-0003). Upstream errors are forwarded with their real
+ * message so the client can surface the actual reason.
  */
 export async function POST(
   request: Request,
@@ -43,7 +46,7 @@ export async function POST(
 
     if (!upstream.ok) {
       return Response.json(
-        { error: 'No se pudo actualizar la visualización.' },
+        { error: await upstreamErrorMessage(upstream) },
         { status: upstream.status }
       );
     }
@@ -52,4 +55,22 @@ export async function POST(
   } catch {
     return Response.json({ error: 'No se pudo contactar el servicio de chat.' }, { status: 502 });
   }
+}
+
+/**
+ * Extracts the real error message from the mirador-core error contract
+ * (`{ error: { code, message } }`), falling back to a generic message when the
+ * body is not JSON or has an unexpected shape.
+ */
+async function upstreamErrorMessage(upstream: Response): Promise<string> {
+  try {
+    const data = (await upstream.json()) as { error?: { code?: unknown; message?: unknown } };
+    if (typeof data.error?.message === 'string' && data.error.message) {
+      return data.error.message;
+    }
+  } catch {
+    // fall through to the generic message
+  }
+
+  return 'No se pudo actualizar la visualización.';
 }
