@@ -9,6 +9,7 @@ import { ChatMarkdown } from '@/components/chat/chat-markdown';
 import { useChatRuntime } from '@/components/chat/chat-runtime-provider';
 import { SuggestionPills } from '@/components/chat/suggestion-pills';
 import { Badge } from '@/components/ui/badge';
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
 import { Spinner } from '@/components/ui/spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useChatStore } from '@/lib/chat/store';
@@ -62,10 +63,12 @@ export function AssistantBubble({
 
       <ChatBubble.Body>
         {status === 'pending' && !text ? (
-          <p className="flex items-center gap-2 text-muted-foreground">
-            <Spinner />
-            {strings.thinking}
-          </p>
+          <Marker role="status">
+            <MarkerIcon>
+              <Spinner />
+            </MarkerIcon>
+            <MarkerContent className="shimmer">{strings.thinking}</MarkerContent>
+          </Marker>
         ) : status === 'complete' ? (
           <ChatMarkdown content={text} />
         ) : (
