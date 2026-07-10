@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseUrl = 'http://127.0.0.1:3000';
+// Puerto propio para e2e: 3000 es de mirador-core en desarrollo, y con
+// `reuseExistingServer` Playwright tomaria al backend como si fuera la web.
+// Nota (Next 16): no puede haber otro `next dev` de este proyecto corriendo
+// mientras corren los e2e (lock de dev server por directorio).
+const baseUrl = 'http://127.0.0.1:3200';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -26,9 +30,16 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
-    command: 'npm run dev -- --hostname 127.0.0.1 --port 3000',
+    command: 'npm run dev -- --hostname 127.0.0.1 --port 3200',
     url: baseUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Hermetico: sin MIRADOR_API_URL el BFF usa el dev stub y el login usa el
+    // CEO de desarrollo — los e2e no dependen del backend ni de la DB.
+    env: {
+      MIRADOR_API_URL: '',
+      DEV_CEO_EMAIL: 'ceo@empresa.com',
+      DEV_CEO_PASSWORD: 'mirador-dev',
+    },
   },
 });
