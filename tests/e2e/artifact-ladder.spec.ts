@@ -93,15 +93,22 @@ async function login(page: Page) {
   await page.goto('/login');
   await page.getByLabel('Correo').fill(email);
   await page.getByLabel('Contraseña', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Ingresar' }).click();
+  const submit = page.getByRole('button', { name: 'Ingresar' });
+  await submit.click();
 
-  // Cold Turbopack + parallel workers: the first click can land before React
-  // hydrates the form and gets lost. One retry absorbs that race.
+  // Two cold-dev-server races: (a) the click can land before React hydrates the
+  // form and get lost; (b) the auth callback can take >20s while Turbopack
+  // compiles it, leaving the button busy/renamed. Wait long, and re-click only
+  // if the idle button is still reachable (case a) — never while in flight.
   try {
-    await expect(page).toHaveURL(/\/chat$/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/chat$/, { timeout: 30_000 });
   } catch {
-    await page.getByRole('button', { name: 'Ingresar' }).click();
-    await expect(page).toHaveURL(/\/chat$/, { timeout: 45_000 });
+    try {
+      await submit.click({ timeout: 2_000 });
+    } catch {
+      // Button gone or busy: the submission is already in flight (case b).
+    }
+    await expect(page).toHaveURL(/\/chat$/, { timeout: 60_000 });
   }
 }
 
