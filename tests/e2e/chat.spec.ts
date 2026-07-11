@@ -1,16 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-const email = process.env.DEV_CEO_EMAIL ?? 'ceo@empresa.com';
-const password = process.env.DEV_CEO_PASSWORD ?? 'mirador-dev';
+import { login } from './helpers';
 
 test('logs in and gets a stubbed answer with suggested questions', async ({ page }) => {
-  await page.goto('/login');
-
-  await page.getByLabel('Correo').fill(email);
-  await page.getByLabel('Contraseña', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Ingresar' }).click();
-
-  await expect(page).toHaveURL(/\/chat$/);
+  await login(page);
 
   const composer = page.getByLabel('Escribe tu mensaje');
   await composer.fill('¿Cómo va el negocio?');

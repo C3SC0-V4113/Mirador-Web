@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { login } from './helpers';
+
 /**
  * Smoke of the 3-level visualization ladder (ADR-0005/0008/0009). Hermetic:
  * `/api/chat/messages` is intercepted at the browser level with fixed
@@ -7,9 +9,6 @@ import { expect, test, type Page } from '@playwright/test';
  * normalization, artifact dispatch, Recharts, vega-embed, sandboxed iframe)
  * without a backend, database, or LLM.
  */
-
-const email = process.env.DEV_CEO_EMAIL ?? 'ceo@empresa.com';
-const password = process.env.DEV_CEO_PASSWORD ?? 'mirador-dev';
 
 interface FixtureArtifact {
   artifact_id: string;
@@ -88,29 +87,6 @@ const SANDBOX_ARTIFACT: FixtureArtifact = {
   sandbox_metadata: { external_resources: [], blocked_items: [] },
   trace_id: 'e2e-trace',
 };
-
-async function login(page: Page) {
-  await page.goto('/login');
-  await page.getByLabel('Correo').fill(email);
-  await page.getByLabel('Contraseña', { exact: true }).fill(password);
-  const submit = page.getByRole('button', { name: 'Ingresar' });
-  await submit.click();
-
-  // Two cold-dev-server races: (a) the click can land before React hydrates the
-  // form and get lost; (b) the auth callback can take >20s while Turbopack
-  // compiles it, leaving the button busy/renamed. Wait long, and re-click only
-  // if the idle button is still reachable (case a) — never while in flight.
-  try {
-    await expect(page).toHaveURL(/\/chat$/, { timeout: 30_000 });
-  } catch {
-    try {
-      await submit.click({ timeout: 2_000 });
-    } catch {
-      // Button gone or busy: the submission is already in flight (case b).
-    }
-    await expect(page).toHaveURL(/\/chat$/, { timeout: 60_000 });
-  }
-}
 
 async function respondWith(page: Page, artifacts: FixtureArtifact[]) {
   await page.route('**/api/chat/messages', async (route) => {

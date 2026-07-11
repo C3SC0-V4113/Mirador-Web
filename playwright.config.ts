@@ -36,10 +36,14 @@ export default defineConfig({
     timeout: 180_000,
     // Hermetico: sin MIRADOR_API_URL el BFF usa el dev stub y el login usa el
     // CEO de desarrollo — los e2e no dependen del backend ni de la DB.
+    // AUTH_SECRET: Auth.js v5 lanza MissingSecret si falta (tambien en dev);
+    // en CI no hay .env.local, asi que se inyecta un secreto dummy valido solo
+    // para la vida del servidor de pruebas.
     env: {
       MIRADOR_API_URL: '',
       DEV_CEO_EMAIL: 'ceo@empresa.com',
       DEV_CEO_PASSWORD: 'mirador-dev',
+      AUTH_SECRET: 'playwright-e2e-dummy-secret-not-for-production',
     },
   },
 });
