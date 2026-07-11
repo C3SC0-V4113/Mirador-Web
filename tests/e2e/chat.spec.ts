@@ -10,10 +10,11 @@ test('logs in and gets a stubbed answer with suggested questions', async ({ page
   await composer.press('Enter');
 
   // The composer clears and the user's message is echoed in its own bubble.
+  // Exact match: the stub's assistant answer quotes the question («...»), so a
+  // substring locator would resolve to BOTH bubbles once the answer renders
+  // (strict mode violation on slower browsers).
   await expect(composer).toHaveValue('');
-  await expect(
-    page.locator('[data-slot="chat-bubble-body"]', { hasText: '¿Cómo va el negocio?' })
-  ).toBeVisible();
+  await expect(page.getByText('¿Cómo va el negocio?', { exact: true })).toBeVisible();
 
   // The dev stub answers and offers suggested questions.
   await expect(page.getByText('Recibí tu pregunta', { exact: false })).toBeVisible();
